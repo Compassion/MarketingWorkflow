@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS `workflow`.`requests` (
   `description` varchar(2048) COLLATE utf8_unicode_ci NOT NULL COMMENT 'description of request',
   `request_maker` varchar(64) COLLATE utf8_unicode_ci NOT NULL COMMENT 'requester email',
   `request_type` varchar(64) COLLATE utf8_unicode_ci NOT NULL COMMENT 'request type',
+  `request_category` varchar(64) COLLATE utf8_unicode_ci NOT NULL COMMENT 'request category',
+  `request_assigned` varchar(64) COLLATE utf8_unicode_ci NOT NULL COMMENT 'request assigned',
   `status` varchar(64) COLLATE utf8_unicode_ci NOT NULL COMMENT 'request status',
   PRIMARY KEY (`request_id`),
   INDEX `request_maker` (`request_maker`)

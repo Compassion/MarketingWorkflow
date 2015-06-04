@@ -7,7 +7,8 @@
       
                 <h3>Hi <?php echo $_SESSION['user_name']; ?> <small><a href="index.php?logout" class="pull-right btn btn-default">Logout</a></small></h3>
                 <span id="msg"></span>
-                
+                <hr />
+                <br />
                 <?php /*var_dump($_SESSION);
                         echo date("Y-m-d");*/
                 ?>
