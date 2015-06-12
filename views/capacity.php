@@ -40,8 +40,6 @@ require_once('views/template/header.php');
                             ?>
                     </tbody>
                 </table>
-                <?php echo json_encode($capacity); ?>
-                
                 
                 <p class="text-center">
                 <?php

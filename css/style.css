@@ -23,3 +23,57 @@
     font-size: 16px;
     text-align: center;
 }
+
+
+/* Ripped from requests */
+html, body {
+    height: 100%;
+    border: 0;
+    margin: 0;
+    padding: 0;
+    background-color: #f2f2f2;
+}
+* {
+    font-family: 'Montserrat', sans-serif;
+}
+.container.no-padding {
+    padding-left: 0;
+    padding-right: 0;
+}
+.container {
+    background-color: white;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+.navbar.navbar-inverse {
+    background-color: #333132;
+    margin-bottom: 0;
+}
+.navbar.navbar-inverse .navbar-brand {
+    color: white;
+}
+.navbar.navbar-inverse .navbar-brand:hover {
+    color: #a7a9ac;
+}
+.navbar.navbar-inverse .navbar-text {
+    display: inline-block;
+    color: #a7a9ac;
+}
+.navbar.navbar-inverse .btn-default {
+    border-color: transparent;
+    color: #a7a9ac;
+    background-color: transparent;
+}
+
+button.btn {
+    border-radius: 2px;
+}
+.form-control {
+    border-radius: 2px;
+}
+
+
+

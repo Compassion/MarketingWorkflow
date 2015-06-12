@@ -8,8 +8,7 @@ require_once('views/template/header.php');
                 
                 <h3>Scope request<small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
                 <hr />
-                <?php //var_dump($_POST); 
-                    $management->createScopeRecord($_POST);
+                <?php //var_dump($_POST);
                 ?>
                 <!-- display errors -->
                 <p class="text-center">

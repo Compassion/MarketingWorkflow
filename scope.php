@@ -23,7 +23,17 @@ $management = new Management();
 if(isset($_POST['scope'])) {
     // id index exists
     $scope = $_POST['scope'];
+    
+    $audit = array();
+    $audit['rq_id'] = $_POST['request_id'];
+    $audit['status'] = 'Awaiting Approval';
+    $audit['creator'] = $_SESSION['user_email'];
+
+    $management->createScopeRecord($_POST, $audit);
+    
+    
     include("views/scope-recieved.php");
+    
 } else {
     include("views/scope.php");
 }

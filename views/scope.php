@@ -126,10 +126,6 @@ $task = $management->getTaskById($id);
                         <input id="scope_vid" class="login_input form-control" type="number" name="scope_vid" required />
                     </div>
                     <div class="form-group col-sm-4">
-                        <label for="scope_dig">Digital</label>
-                        <input id="scope_dig" class="login_input form-control" type="number" name="scope_dig" required />
-                    </div>
-                    <div class="form-group col-sm-4">
                         <label for="scope_ext">External</label>
                         <input id="scope_ext" class="login_input form-control" type="number" name="scope_ext" required />
                     </div>

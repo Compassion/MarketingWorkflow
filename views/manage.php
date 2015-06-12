@@ -11,13 +11,15 @@ require_once('views/template/header.php');
                 <div id="infoMessage"></div>
                 <!-- register form -->
                 
-                <div class="taskList">
+                <div class="taskList panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                 <?php 
                     $tasks = $management->viewTasks('Query'); 
                     var_dump($_SESSION);
                     //var_dump($tasks->fetch_assoc());
 
-                    while($row = $tasks->fetch_assoc()) { ?>
+                    while($row = $tasks->fetch_assoc()) {
+                        //if($row['request_assigned'] == $_SESSION['user_group']) {
+                    ?>
 
                     <div class="panel panel-default" id="pendingPanel<?=$row['request_id']?>">
                         <div class="panel-heading" role="tab" id="panel<?=$row['request_id']?>">
@@ -32,10 +34,11 @@ require_once('views/template/header.php');
                                   </button>
                                   <ul class="dropdown-menu" role="menu">
                                     <li><a href="scope.php?rq_id=<?=$row['request_id']?>" class="approve" id="approve<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-arrow-right"></span> Scope</a></li>
-                                    <li><a href="#" class="decline" id="decline<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-remove"></span> Decline request</a></li>
-
+                                      
+                                    <li><a href="#" class="pending" id="pending<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-flag"></span> Escalate</a></li>
+                                      
                                     <li class="divider"></li>
-                                    <li><a href="#" class="pending" id="pending<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-hourglass"></span> Wait</a></li>
+                                    <li><a href="#" class="decline" id="decline<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-remove"></span> Decline request</a></li>
                                   </ul>
                                 </div>
                           </h4>
@@ -52,7 +55,8 @@ require_once('views/template/header.php');
                         </div>
                     </div>
                 
-                 <?php } ?>
+                 <?php //}
+                        } ?>
                 </div>
                 
                 

@@ -33,6 +33,14 @@ $login = new Login();
 
 // ... ask if we are logged in here:
 if ($login->isUserLoggedIn() == true) {
+    require_once('core/functions.php');
+    
+    $backlogCount = returnStatusCount('Backlog', 'none');
+    $queryCount = returnStatusCount('Query', $_SESSION['user_group']);
+    $scopeCount = returnStatusCount('Scoped', 'none');
+    $approveCount = returnStatusCount('Approved', 'none');
+    $pendingCount = returnStatusCount('Pending', 'none');
+    
     // the user is logged in. you can do whatever you want here.
     // for demonstration purposes, we simply show the "you are logged in" view.
     include("views/logged_in.php");

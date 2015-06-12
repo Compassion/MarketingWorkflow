@@ -13,7 +13,7 @@ require_once('views/template/header.php');
                 
                 <div class="taskList">
                 <?php 
-                    $tasks = $management->viewTasks('Scoped'); 
+                    $tasks = $management->viewTasks('Approved'); 
                     //var_dump($_SESSION);
                     //var_dump($tasks->fetch_assoc());
 
@@ -35,7 +35,7 @@ require_once('views/template/header.php');
                                   <ul class="dropdown-menu" role="menu">
                                     <li><a href="plan.php?pl_id=<?=$row['request_id']?>" class="plan" id="plan<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon glyphicon-calendar"></span> Plan</a></li>
                                     <li class="divider"></li>
-                                    <li><a href="#" class="decline" id="decline<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon glyphicon-hourglass"></span> Backlog</a></li>
+                                    <li><a href="scope.php?rq_id=<?=$row['request_id']?>" class="scope" id="scope<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-repeat"></span> Re-scope</a></li>
                                   </ul>
                                 </div>
                           </h4>

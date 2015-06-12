@@ -10,13 +10,7 @@ require_once("classes/Management.php");
 // Gotta get the request class
 $management = new Management();
 
-// Show the plan view
-if(isset($_GET['status'])) {
-    // status index exists
-    $status = $_GET['status'];
-    include("views/specific_status.php");
-    
-} elseif (isset($_GET['ajax'])) {
+if (isset($_GET['ajax'])) {
     // show potential errors / feedback (from registration object)
     $alertTop_Danger = '<div class="alert alert-danger alert-dismissible fade in" role="alert">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>';
@@ -41,6 +35,6 @@ if(isset($_GET['status'])) {
         }
     } 
 } else {
-    include("views/manage.php");
+    include("views/approve.php");
 }
-// Show the request view
+// Show the approval view

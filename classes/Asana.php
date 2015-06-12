@@ -648,6 +648,27 @@ class Asana {
     }
 
     /**
+     * CREATE A TAG!!!
+     
+        
+    public function createTask($data, array $opts = array()) {
+        $data = array('data' => $data);
+        $data = json_encode($data);
+        $options = http_build_query($opts);
+
+        return $this->askAsana($this->taskUrl . '?' . $options, $data, ASANA_METHOD_POST);
+    }
+     
+     */
+    public function createTag($data, array $opts = array()) {
+        $data = array('data' => $data);
+        $data = json_encode($data);
+        $options = http_build_query($opts);
+        //echo $this->tagsUrl;
+        return $this->askAsana($this->tagsUrl . '?' . $options, $data, ASANA_METHOD_POST);
+    }
+
+    /**
      * Returns the full record for all tags in all workspaces.
      *
      * @return string JSON or null

@@ -591,7 +591,7 @@ function work() {
             var id = keys[i] + "Chart";
             this.buildChart(id, keys[i]);
         }
-    }
+    } 
 }
 
 
