@@ -49,7 +49,17 @@ class Management
             
             $this->createAuditRecord($audit);
             $this->checkAuditApproval($_GET['rq_id']);
-        } 
+        }
+        
+        if (isset($_GET['audit'])) {
+            $audit = array();
+            $audit['rq_id'] = $_GET['rq_id'];
+            $audit['status'] = $_GET['send_to'];
+            $audit['creator'] = $_SESSION['user_email'];
+            $audit['comment'] = "Requested " . urldecode($_GET['audit']);
+            
+            $this->createAuditRecord($audit);
+        }
          
         /*
         if (isset($_POST["request_made"])) {

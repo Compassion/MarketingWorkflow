@@ -21,6 +21,8 @@ $CoM = "Coms Manager";
 
                     while($row = $tasks->fetch_assoc()) { 
                         
+                        $scope = $management->getScopeRecord($row['request_id']);
+                        
                         $MM_status = $management->returnAuditStatus($row['request_id'], $MM);
                         $CrM_status = $management->returnAuditStatus($row['request_id'], $CrM);
                         $CoM_status = $management->returnAuditStatus($row['request_id'], $CoM);
@@ -46,22 +48,18 @@ $CoM = "Coms Manager";
                                     <?=$row['status']?> <span class="caret"></span>
                                   </button>
                                   <ul class="dropdown-menu" role="menu">
-                                    <li><a href="scope.php?rq_id=<?=$row['request_id']?>" class="scope" id="scope<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-arrow-right"></span> Scope</a></li>
-                                    <li><a href="scope.php?rq_id=<?=$row['request_id']?>" class="scope" id="scope<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-repeat"></span> Re-scope</a></li>
-                                    <li><a href="plan.php?pl_id=<?=$row['request_id']?>" class="plan" id="plan<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon glyphicon-calendar"></span> Plan</a></li>
-                                    <li><a href="plan.php?pl_id=<?=$row['request_id']?>" class="approve" id="approve<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-ok"></span> Approve</a></li>
-                                    <li class="divider"></li>
-                                      
-                                    <li><a href="#" class="pending" id="pending<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-flag"></span> Escalate</a></li>
-                                    <li><a href="#" class="backlog" id="backlog<?=$row['request_id']?>" data-val="<?=$row['request_id']?>"><span class="glyphicon glyphicon-list-alt"></span> Backlog</a></li>
-                                      
-                                    <li><a href="#" class="decline" id="decline<?=$row['request_id']?>" data-val="<?=$row['request_id']?>" data-target="#declineModal" data-toggle="modal" ><span class="glyphicon glyphicon-remove"></span> Decline request</a></li>
+                                    <?php
+                                        displayActions($row['status'], $row['request_id']);
+                                    ?>
                                   </ul>
                                 </div>
                           </h4>
                         </div>
                         <div id="heading<?=$row['request_id']?>" class="panel-collapse collapse" role="tabpanel" aria-labelledby="panel<?=$row['request_id']?>">
                           <div class="panel-body">
+                            <div class="scopeNumbers row">
+                                <?php displayScopeAmounts($scope); ?>
+                            </div>
                             <p><b>Time submitted:</b> <?=$row['date_created']?><br />
                                <b>Category:</b> <?=$row['request_category']?><br />
                                <b>Assigned to:</b> <?=$row['request_assigned']?><br />
@@ -112,100 +110,13 @@ $CoM = "Coms Manager";
     <script src="http://code.jquery.com/jquery-2.1.1.min.js" type="text/javascript"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
     <!-- Ajax Script -->
+    <script type="text/javascript" src="js/actions.js"></script>
     <script type="text/javascript">
-        function updateButton(id, status) {
-            var button = "#button" + id,
-                btn = $(button);
-
-                //btn.button('reset');
-
-            if(status == "Approved") {
-                btn.removeClass("btn-warning btn-danger").addClass("btn-success");
-                btn.html("Approved <span class='glyphicon glyphicon-ok'></span>");
-                console.log(status);
-            } else if(status == "Declined") { 
-                btn.removeClass("btn-warning btn-success").addClass("btn-danger");    
-                btn.html("Declined <span class='glyphicon glyphicon-remove'></span>"); 
-                console.log(status);           
-            } else if(status == "Pending") {
-                btn.removeClass("btn-success btn-danger").addClass("btn-warning"); 
-                btn.html("<span class='glyphicon glyphicon-flag'></span> Escalated");  
-                console.log(status);          
-            } else if(status == "Backlog") {
-                btn.removeClass("btn-success btn-danger").addClass("btn-warning"); 
-                btn.html("<span class='glyphicon glyphicon-list-alt'></span> Backlog");  
-                console.log(status);
-            } else {
-                console.log(status);
-            }
-        }
-        
         $(document).ready(function() {
-            
-            // Send to backlog
-            // Get all backlog buttons
-                for(j = 0; j < $(".backlog").length; j++ ) {
-                    // Get the request id and find the individual button
-                    var rqId = $($('.backlog')[j]).attr('data-val');
-                    
-                    var backlog = "#backlog" + rqId;
-                    
-                    
-                    $(backlog).click(function(){
-                        event.preventDefault();
-                        // On click change the buttons status
-                        var rqId = $(this).attr("data-val"),
-                            btn = "#button" +rqId;
-                            $(btn).button('loading');
-                        // Do the Ajax
-                        $.ajax({
-                            type: "GET",
-                            url: "manage.php",
-                            data: 'ajax=true&rq_id=' + rqId + '&send_to=Backlog',
-                            success: function(msg){
-                                var current = $('#infoMessage').html(),
-                                    newMsg = current + " " + msg;
-                                $('#infoMessage').html(newMsg);
-                                updateButton(rqId, "Backlog");
-                            }
-                        }); // Ajax Call
-                        
-                    });
-                }
-            // Send to backlog
-            // Get all backlog buttons
-                for(i = 0; i < $(".pending").length; i++ ) {
-                    // Get the request id and find the individual button
-                    var rqId = $($('.pending')[i]).attr('data-val');
-                    
-                    var pending = "#pending" + rqId;
-                    
-                    
-                    $(pending).click(function(){
-                        event.preventDefault();
-                        // On click change the buttons status
-                        var rqId = $(this).attr("data-val"),
-                            btn = "#button" +rqId;
-                            $(btn).button('loading');
-                        // Do the Ajax
-                        $.ajax({
-                            type: "GET",
-                            url: "manage.php",
-                            data: 'ajax=true&rq_id=' + rqId + '&send_to=Pending',
-                            success: function(msg){
-                                var current = $('#infoMessage').html(),
-                                    newMsg = current + " " + msg;
-                                $('#infoMessage').html(newMsg);
-                                updateButton(rqId, "Pending");
-                            }
-                        }); // Ajax Call
-                        
-                    });
-                }
+           addAjax('<?=$_SESSION['user_group']?>', '<?=$_SESSION['user_email']?>'); 
         });
     </script>
     <!-- // Ajax Script -->
-    <?php include('views/template/modal_decline.php'); ?>
 
 
 <?php
