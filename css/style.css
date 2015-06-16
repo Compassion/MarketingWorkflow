@@ -8,6 +8,12 @@
     float: left;
     margin-left: 2%;
 }
+.scopeNumbers div.scoped:first-of-type {
+    margin-left: 0;
+}
+.scoped:first-child {
+    margin-left: 0;
+}
 .scoped:hover {
     background-color: #e3e3e3;
 }
@@ -24,6 +30,20 @@
     text-align: center;
 }
 
+.panel-body h4 {
+    clear: both;
+}
+.panel-body h5 {
+    clear: both;
+    font-weight: bold;
+}
+.detail {
+    overflow: auto;
+    padding-bottom: 10px;
+}
+.clear {
+    clear: both;
+}
 
 /* Ripped from requests */
 html, body {

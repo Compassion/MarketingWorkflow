@@ -16,6 +16,15 @@ class Request
     {
         session_start();
         
+        // Make sure people are logged in
+        if(!isset($_SESSION['user_login_status'])) {
+            header("Location: /");
+            die();
+        } elseif ($_SESSION['user_login_status'] != true ) {
+            header("Location: /");
+            die();
+        }
+        
         if (isset($_POST["request_made"])) {
             $this->makeRequest();
         }

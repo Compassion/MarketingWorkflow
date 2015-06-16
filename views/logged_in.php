@@ -60,6 +60,14 @@
                 }); // Ajax Call
 
             });
+            
+            $("#linkGen").click(function(){
+                var user = $("#usernameInput").val(),
+                    url = 'cmVzZXQ=' + btoa(user);
+                
+                $('#pw_here').html('You\' reset URL is <br /> /index.php?' + url);
+            });
+            
         });
     </script>
 

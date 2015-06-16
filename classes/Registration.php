@@ -121,4 +121,5 @@ class Registration
             $this->errors[] = "An unknown error occurred.";
         }
     }
+    
 }

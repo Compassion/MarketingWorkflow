@@ -13,14 +13,56 @@ if(isset($_GET['rq_id'])) {
 }
 */
 $task = $management->getTaskById($id); 
+$scope = $management->getScopeRecord($id);
+$log = $management->getAuditLog($id);
+
+$ph = array();
+if($scope == null) {
+    $new_rq = true;
+    
+    $ph['product'] = 0;
+    $ph['coms'] = 0;
+    $ph['digital'] = 0;
+    $ph['design'] = 0;
+    $ph['video'] = 0;
+    $ph['external'] = 0;
+    
+} else {
+    $new_rq = false;
+    
+    $ph['product'] = $scope['scope_product'];
+    $ph['coms'] = $scope['scope_coms'];
+    $ph['digital'] = $scope['scope_digital'];
+    $ph['design'] = $scope['scope_design'];
+    $ph['video'] = $scope['scope_video'];
+    $ph['external'] =$scope['scope_external'];
+}
 ?>
     <div class="container">
         <div class="row">
-            <div class="col-md-6 col-md-offset-3">
+            <div class="col-md-10 col-md-offset-1">
                 
-                <h3>Scope request<small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
+                <h3>Scope request
+                    <small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
                 <hr />
-                   
+                <!-- // display errors -->
+                <br />
+                <h4><?php echo $task['request_name']?> 
+                    <span class="btn btn-default btn-xs disabled pull-right btn-primary"><?=$task['date_due']?></span>
+                    <br /><small><?=$task['request_type']?> - <?=$task['request_category']?>
+                    <br />Submitted by  <?=$task['request_maker']?> on <?=$task['date_created']?>, Due: <?=$task['date_due']?>
+                    <?php if(!$new_rq) { ?>
+                        <br /> Originally scoped by <?=$scope['scoper']; ?>, on <?=$scope['date_scoped']; ?>
+                    <?php } ?>
+                    </small></h4>
+                
+                <br />
+                <div class="description">
+                    <p><b>Description</b><br />
+                        <?php echo $task['description']?></p>
+                </div>
+                
+                <span id="infoMessage"></span>
                 <!-- display errors -->
                 <p class="text-center">
                 <?php
@@ -48,102 +90,78 @@ $task = $management->getTaskById($id);
                     }
                 } 
                 ?></p>
-                <!-- // display errors -->
-            
-                <h4><?php echo $task['request_name']?> 
-                    <br /><small><?php echo $task['request_type']?> - <?php echo $task['request_category']?>
-                    <br />Submitted by  <?php echo $task['request_maker']?> on <?php echo $task['date_created']?>, Due: <?php echo $task['date_due']?></small></h4>
                 
+                <!-- Scope form -->
                 <br />
-                <div class="description">
-                    <p><b>Description</b><br />
-                        <?php echo $task['description']?></p>
+                <div id="formsToHide">
+                    <h4>Estimated resources required</h4>
+                    <form method="post" post="scope.php" name="scopingForm" id="scopingForm" class="row">
+                        <input type="hidden" name="scoper" value="<?php echo $_SESSION["user_email"] ?>" />
+                        <input type="hidden" name="date_scoped" value="<?php echo date('Y-m-d'); ?>" />
+                        <input type="hidden" name="request_id" value="<?php echo $id; ?>" />
+                        <input type="hidden" name="scope" value="scoped" />
+
+                        <div class="form-group col-sm-4">
+                            <label for="scope_prod">Product</label>
+                            <input id="scope_prod" class="login_input form-control" type="number" name="scope_prod" placeholder="<?=$ph['product']; ?>" required />
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label for="scope_coms">Comms</label>
+                            <input id="scope_coms" class="login_input form-control" type="number" name="scope_coms" placeholder="<?=$ph['product']; ?>"  required />
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label for="scope_dig">Digital</label>
+                            <input id="scope_dig" class="login_input form-control" type="number" name="scope_dig" placeholder="<?=$ph['digital']; ?>"  required />
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label for="scope_des">Design</label>
+                            <input id="scope_des" class="login_input form-control" type="number" name="scope_des" placeholder="<?=$ph['design']; ?>"  required />
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label for="scope_vid">Video</label>
+                            <input id="scope_vid" class="login_input form-control" type="number" name="scope_vid" placeholder="<?=$ph['video']; ?>"  required />
+                        </div>
+                        <div class="form-group col-sm-4">
+                            <label for="scope_ext">External</label>
+                            <input id="scope_ext" class="login_input form-control" type="number" name="scope_ext" placeholder="<?=$ph['external']; ?>"  required />
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <label for="project_assign">Assign to which project?</label>
+                            <select name="project_assign" class="form-control">
+                            <option>-- Select project --</option>
+                                <?php
+                                    $projs = $management->getAsanaProjects()->data;
+                                    foreach ($projs as $val ) { ?>
+                                    <option value="<?php echo $val->id; ?>"><?php echo $val->name; ?></option>
+                                <?php } ?>
+                            </select> 
+                        </div>
+                    </form>
+                    <br />
+                    <h4>Desired deliverables</h4>
+                    <div class="" id="deliverableFormContainer">
+                        <form method="post" post="scope.php" name="deliverableForm-0" id="deliverableForm-0" class="row deliverableForm">
+                            <div class="form-group col-sm-8">
+                                <label for="st_name-0">Deliverable</label>
+                                <input class="form-control" placeholder="Name" name="st_name-0" id="st_name-0" />
+                            </div>
+                            <div class="form-group col-sm-4">
+                                <label for="st_due-0">Due</label>
+                                <input class="form-control" type="date" name="st_due-0" id="st_due-0" />
+                            </div>
+                            <div class="form-group col-sm-8">
+                                <textarea class="form-control" rows="1" placeholder="Comment" name="st_comment-0" id="st_comment-0"></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <button class="btn btn-xs btn-info pull-right addDel"><span class="glyphicon glyphicon-plus-sign"></span> Add another</button>
+                    </div>
+                    <div class="col-sm-12 text-center">
+                        <input type="submit" class="btn btn-primary btn-lg clearfix" name="scope" value="Scope" id="submitScope" data-loading-text="Attempting magic..." />
+                    </div>
                 </div>
-				<br />
-				<h4>Desired deliverables</h4>
-				<form>
-					<div class="row">
-						<div class="form-group col-sm-9">
-							<label for="">Task</label>
-							<input class="form-control" />
-						</div>
-						<div class="form-group col-sm-3">
-							<label for="">Due</label>
-							<input class="form-control" type="date" />
-						</div>
-					</div>
-					<div class="row">
-						<div class="form-group col-sm-9">
-							<label for="">Task</label>
-							<input class="form-control" />
-						</div>
-						<div class="form-group col-sm-3">
-							<label for="">Due</label>
-							<input class="form-control" type="date" />
-						</div>
-					</div>
-					<div class="row">
-						<div class="form-group col-sm-9">
-							<label for="">Task</label>
-							<input class="form-control" />
-						</div>
-						<div class="form-group col-sm-3">
-							<label for="">Due</label>
-							<input class="form-control" type="date" />
-						</div>
-					</div>
-					
-				</form>
-                
-                <!-- register form -->
-                <br />
-                 <?php var_dump($_POST); ?>
-                
-                <h4>Estimated resources required</h4>
-                <form method="post" post="scope.php" name="scopingForm" id="scopingForm" class="">
-                    <input type="hidden" name="scoper" value="<?php echo $_SESSION["user_email"] ?>" />
-                    <input type="hidden" name="date_scoped" value="<?php echo date('Y-m-d'); ?>" />
-                    <input type="hidden" name="request_id" value="<?php echo $id; ?>" />
-                    
-                    <div class="form-group col-sm-4">
-                        <label for="scope_prod">Product</label>
-                        <input id="scope_prod" class="login_input form-control" type="number" name="scope_prod" required />
-                    </div>
-                    <div class="form-group col-sm-4">
-                        <label for="scope_coms">Coms</label>
-                        <input id="scope_coms" class="login_input form-control" type="number" name="scope_coms" required />
-                    </div>
-                    <div class="form-group col-sm-4">
-                        <label for="scope_dig">Digital</label>
-                        <input id="scope_dig" class="login_input form-control" type="number" name="scope_dig" required />
-                    </div>
-                    <div class="form-group col-sm-4">
-                        <label for="scope_des">Design</label>
-                        <input id="scope_des" class="login_input form-control" type="number" name="scope_des" required />
-                    </div>
-                    <div class="form-group col-sm-4">
-                        <label for="scope_vid">Video</label>
-                        <input id="scope_vid" class="login_input form-control" type="number" name="scope_vid" required />
-                    </div>
-                    <div class="form-group col-sm-4">
-                        <label for="scope_ext">External</label>
-                        <input id="scope_ext" class="login_input form-control" type="number" name="scope_ext" required />
-                    </div>
-                    <div class="form-group col-sm-12">
-                        <label for="project_assign">Assign to which project?</label>
-                        <select name="project_assign" class="form-control">
-                        <option>-- Select project --</option>
-                            <?php var_dump($management->getAsanaProjects()->data); 
-                                $projs = $management->getAsanaProjects()->data;
-                                foreach ($projs as $val ) { ?>
-                                <option value="<?php echo $val->id; ?>"><?php echo $val->name; ?></option>
-                            <?php } ?>
-                        </select> 
-                    </div>
-                    <div class="form-group col-sm-12">
-                        <input type="submit" class="btn btn-primary" name="scope" value="Scope" />
-                    </div>
-                </form>
             </div>
         </div>
     </div>
@@ -151,6 +169,7 @@ $task = $management->getTaskById($id);
      
     <script src="http://code.jquery.com/jquery-2.1.1.min.js" type="text/javascript"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <script src="js/scope.js" type="text/javascript"></script>
 
 
 <?php

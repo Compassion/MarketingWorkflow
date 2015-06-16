@@ -21,6 +21,15 @@ class Management
     {
         session_start();
         
+        // Make sure people are logged in
+        if(!isset($_SESSION['user_login_status'])) {
+            header("Location: /");
+            die();
+        } elseif ($_SESSION['user_login_status'] != true ) {
+            header("Location: /");
+            die();
+        }
+        
         // Create Asana Class
         $this->asana = new Asana(array('apiKey' => KEY_ASANA));
         
@@ -73,7 +82,6 @@ class Management
         // Establish connection
         $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
         
-        
         // Check DB
         if (!$this->db_connection->set_charset("utf8")) {
             $this->errors[] = $this->db_connection->error;
@@ -82,6 +90,25 @@ class Management
         // If no errors grab all the tasks with the right status
         if (!$this->db_connection->connect_errno) {
             $sql = "SELECT * FROM `requests` WHERE `status` = '". $status ."';";
+            $rq_list = $this->db_connection->query($sql);
+            
+            return $rq_list;
+        }
+    }
+    // View tasks by status - this will be extended to show by person assigned
+    public function viewTasksByAssigned($request_assigned)
+    {
+        // Establish connection
+        $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        
+        // Check DB
+        if (!$this->db_connection->set_charset("utf8")) {
+            $this->errors[] = $this->db_connection->error;
+        }
+        
+        // If no errors grab all the tasks with the right status
+        if (!$this->db_connection->connect_errno) {
+            $sql = "SELECT * FROM `requests` WHERE `request_assigned` = '". $request_assigned ."' ORDER BY `status` DESC, `date_created`;";
             $rq_list = $this->db_connection->query($sql);
             
             return $rq_list;
@@ -123,7 +150,6 @@ class Management
         return $resultJson;        
     }
     
-    
     // Update Task Status
     public function updateRequestStatus($id, $status) 
     {
@@ -155,6 +181,37 @@ class Management
             return false;
         }
     }
+    // Update Task Status
+    public function updateRequestAssigned($id, $assign) 
+    {
+        $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+        // Check DB
+        if (!$this->db_connection->set_charset("utf8")) {
+            $this->errors[] = $this->db_connection->error;
+        }
+
+        // If no errors push away!
+        if (!$this->db_connection->connect_errno) {
+
+            $update = "UPDATE `requests` SET `request_assigned`='" . $assign . "' WHERE `request_id` = '". $id ."';";
+            // Update scoping request.
+            $update_rq = $this->db_connection->query($update);
+
+            // Check if it worked
+            if ($update_rq) {
+                $this->messages[] = "<strong>Request reassigned!</strong> Fantastic right?";
+                return true;
+            } else {
+                $this->errors[] = "<strong>Ahhh!</strong> Sorry something broke. Request not reassigned";
+                return false;
+            }
+
+        } else {
+            $this->errors[] = "<strong>Epic Fail!</strong> Sorry, no database connection.";
+            return false;
+        }
+    }
     
     // Create audit record
     public function createAuditRecord($audit) 
@@ -174,6 +231,7 @@ class Management
             $status = $audit['status'];
             $creator = $audit['creator'];
             
+            
             // IF an Approval request is required.
             if($status == 'Awaiting Approval') {
                 $marketing_manager = 'Marketing Manager';
@@ -189,7 +247,7 @@ class Management
             }
             elseif (isset($audit['comment'])) {
                 // If assigned is set but not comment
-                $comment = $audit['comment'];
+                $comment = $this->db_connection->real_escape_string(strip_tags($audit['comment'], ENT_QUOTES));
                 
                 $insert = "INSERT INTO `audit_action`(`request_id`, `audit_date`, `audit_person`, `audit_comment`, `audit_status`) VALUES ('$rq_id','$date','$creator','$comment', '$status');";
             } 
@@ -234,9 +292,30 @@ class Management
             $sql = "SELECT * FROM `audit_action` WHERE `request_id` = '". $id ."';";
             $rq_list = $this->db_connection->query($sql);
             
-            return $rq_list->fetch_assoc();
+            return $rq_list;
         }
     }
+    
+    // Get all the all scoped deliverables / subtasks
+    public function getDeliverables($id) 
+    {
+        // Establish connection
+        $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        
+        // Check DB
+        if (!$this->db_connection->set_charset("utf8")) {
+            $this->errors[] = $this->db_connection->error;
+        }
+        
+        // If no errors grab all the tasks with the right status
+        if (!$this->db_connection->connect_errno) {
+            $sql = "SELECT * FROM `scope_subtask` WHERE `request_id` = '". $id ."';";
+            $st_list = $this->db_connection->query($sql);
+            
+            return $st_list;
+        }
+    }
+    
     // Check approval (audit) status
     public function returnAuditStatus($id, $who) 
     {
@@ -299,7 +378,6 @@ class Management
     {
         //var_dump($post);
         
-        
         if (empty($post['scope'])) {
             $this->errors[] = "Request has not been posted correctly";
         } else {
@@ -329,7 +407,6 @@ class Management
                 $scope_ext = $this->db_connection->real_escape_string(strip_tags($post['scope_ext'], ENT_QUOTES));
                 
                 $sum = $scope_prod + $scope_coms + $scope_dig + $scope_des + $scope_vid + $scope_ext;
-                
                 // Check if request id already exists in scope table
                 $chq = "SELECT `request_id` FROM `scope_record` WHERE `request_id` = '" . $request_id . "';";
                 $chq_query = $this->db_connection->query($chq);
@@ -345,10 +422,12 @@ class Management
                     if ($update_rq) {
                         $this->messages[] = "<strong>Scoping updated!</strong> That means everything is good.";
                         $this->updateRequestStatus($request_id, "Scoped");
-                        
                         if($sum <= 4) {
                             $this->updateRequestStatus($request_id, "Approved");
                             $this->messages[] = "<strong>Auto Approved!</strong> Due to the low amount of work required. Win!";
+                            
+                            $audit['status'] = "System auto-approved scope";
+                            $this->createAuditRecord($audit);
                         } else {
                             $this->createAuditRecord($audit);
                         }
@@ -373,9 +452,11 @@ class Management
                         if($sum <= 4) {
                             $this->updateRequestStatus($request_id, "Approved");
                             $this->messages[] = "<strong>Auto Approved!</strong> Due to the low amount of work required. Win!";
+                            $audit['status'] = "System auto-approved";
+                            $this->createAuditRecord($audit);
+                        } else {
+                            $this->createAuditRecord($audit);
                         }
-                        
-                        
                     } else {
                         $this->errors[] = "<strong>Bugger!</strong> Sorry something broke.";
                         echo $insert;
@@ -385,7 +466,69 @@ class Management
                 $this->errors[] = "<strong>Epic Fail!</strong> Sorry, no database connection.";
             }
         }
+    }
+    
+    // Create a deliverable record
+    public function createDeliverable($post) 
+    {
+        //var_dump($post);
+        if (empty($post['scope'])) {
+            $this->errors[] = "Request has not been posted correctly";
+        } else {
+            $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+            
+            // Check DB
+            if (!$this->db_connection->set_charset("utf8")) {
+                $this->errors[] = $this->db_connection->error;
+            }
+            
+            
+            // If no errors push away!
+            if (!$this->db_connection->connect_errno) {
+                
+                // Clean data
+                $request_id = $this->db_connection->real_escape_string(strip_tags($post['request_id'], ENT_QUOTES));
+                
+                $scope_id = $this->db_connection->real_escape_string(strip_tags($post['scope_id'], ENT_QUOTES));
+                
+                $date_created = date('Y-m-d');
+                $date_required =  $this->db_connection->real_escape_string(strip_tags($post['st_due'], ENT_QUOTES));
+                $name =  $this->db_connection->real_escape_string(strip_tags($post['st_name'], ENT_QUOTES));
+                $comment =  $this->db_connection->real_escape_string(strip_tags($post['st_comment'], ENT_QUOTES));
+                
+                // Build SQL
+                $insert = "INSERT INTO `scope_subtask`(`request_id`, `scope_id`, `st_date_created`, `st_date_required`, `st_name`, `st_comment`) VALUES ('$request_id','$scope_id','$date_created','$date_required','$name','$comment');"; 
+
+                // Insert into database
+                $insert_del = $this->db_connection->query($insert);
+
+                // Check if it worked
+                if ($insert_del) {
+                    $this->messages[] = "<strong>Success!</strong> Subtask injected.";  
+                } else {
+                    $this->errors[] = "<strong>FAILURE!</strong> Subtask rejected for some strange reason. SQL - " .$insert; 
+                }     
+            } else {
+                $this->errors[] = "<strong>Epic Fail!</strong> Sorry, no database connection.";
+            }
+        }
         
+    }
+    
+    public function deleteDeliverables($request_id)
+    {
+        // Deletes subtasks associated with a request ID
+        $delete = "DELETE FROM `scope_subtask` WHERE `request_id` = '$request_id';";
+
+        // Insert into database
+        $delete_del = $this->db_connection->query($delete);
+
+        // Check if it worked
+        if ($delete_del) {
+            $this->messages[] = "<strong>Boom!</strong> Previous subtasks have been deleted. Make room for the future!";  
+        } else {
+            $this->errors[] = "<strong>Nope...</strong> Subtask deletion rejected for some strange reason. SQL - " .$delete; 
+        }           
     }
     
     // Update Task Status
@@ -407,6 +550,7 @@ class Management
             return $rq_list->fetch_assoc();
         }
     }
+    
     
     /*
      *
@@ -691,9 +835,10 @@ class Management
         
         $task = $this->getTaskById($rq_id);
         $scope = $this->getScopeRecord($rq_id);
+        $subtasks = $this->getDeliverables($rq_id);
         
         $taskId = $rq_id;
-        $name = $task['request_name'];
+        $name = $taskId. " - ". $task['request_name'];
         $description = $task['description'] . "Request ID " . $taskId .", Requested by " . $task['request_maker'];
         $created_at = $task['date_created']; // This is READ ONLY :(
         $due_on = $task['date_due'];
@@ -721,9 +866,7 @@ class Management
         $json = json_encode($asana_task);
         
         echo $json; */
-        
-        
-        
+
         // time for ASANA stuff!
         $createTask = $this->asana->createTask($asana_task);
         
@@ -748,9 +891,43 @@ class Management
             $this->errors[] = "<strong>Bad news...<strong> Task created but can\'t associate with project, response code:" . $this->asana->responseCode;
         } else {
             $this->messages[] = "<strong>Everything worked!</strong> Yay more work!";
-        } 
+        }
         
         $this->dealWithTags($taskId, $tags);
+        
+        if($subtasks->num_rows != null) {
+            $this->sendSubtasksToAsana($rq_id, $taskId);
+        }
+    }
+    
+    // Send subtask to Asana
+    private function sendSubtasksToAsana($rq_id, $parentId) {
+        $subtasks = $this->getDeliverables($rq_id);
+        
+        while($task = $subtasks->fetch_assoc()) {
+            
+            $due_on = $task['st_date_required'];
+            $description = $task['st_comment'];
+            $name = $rq_id. " - ". $task['st_name'];
+            
+            // Build task array
+            $asana_task = array(
+                'workspace' => KEY_ASANA_WS,
+                'name' => $name,
+                'assignee_status' => 'upcoming',
+                'due_on' => $due_on,
+                'notes' => $description
+            );
+            
+            $createSubTask = $this->asana->createSubTask($parentId, $asana_task);
+            
+            // Check if it worked
+            if($this->asana->responseCode != '201' || is_null($createSubTask)){
+                $this->errors[] = "<strong>Unable to create subtask in Asana</strong> Response code: " . $this->asana->responseCode;
+            } else {
+                $this->messages[] = "<strong>Subtask created!</strong> Flipping sweet!";
+            } 
+        }
     }
     
     // Tags in ASANA are stupid, so I thought I would split this function out here to deal with them separately.

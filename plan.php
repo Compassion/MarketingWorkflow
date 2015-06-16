@@ -14,7 +14,9 @@ $management = new Management();
 if(isset($_GET['pl_id'])) {
     // id index exists
     $scope = $_GET['pl_id'];
-    include("views/plan-detail.php");
+    include("views/plan_detail.php");
 } else {
-    include("views/plan.php");
+    $_GET['status'] = 'approved';
+    $status = $_GET['status'];
+    include("views/specific_status.php");
 }

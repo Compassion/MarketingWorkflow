@@ -91,7 +91,7 @@ function addAjax(assigned, creator) {
 
     // Approve with audit creation!
     // Get all approve buttons
-        for(i = 0; i < $(".approve").length; i++ ) {
+    for(i = 0; i < $(".approve").length; i++ ) {
             // Get the request id and find the individual button
             var rqId = $($('.approve')[i]).attr('data-val');
 
@@ -129,7 +129,7 @@ function addAjax(assigned, creator) {
 
     // Decline with audit creation!
     // Get all decline buttons
-        for(i = 0; i < $(".decline").length; i++ ) {
+    for(i = 0; i < $(".decline").length; i++ ) {
             // Get the request id and find the individual button
             var rqId = $($('.decline')[i]).attr('data-val');
 
@@ -299,9 +299,81 @@ function addAjax(assigned, creator) {
                     var current = $('#infoMessage').html(),
                         newMsg = current + " " + msg;
                     $('#infoMessage').html(newMsg);
-                    updateButton(rqId, "Declined");
+                    updateButton(rqId, "Approved");
                 }
             }); // Ajax Call
         });
     }
+    
+    // Add comment modal popup
+    for(j = 0; j < $(".comment").length; j++ ) {
+        // Get the request id and find the individual button
+        var rqId = $($('.comment')[j]).attr('data-val');
+
+        var comment = "#comment" + rqId;
+
+        $(comment).click(function(){
+            event.preventDefault();
+            // On click change the buttons status
+            var rqId = $(this).attr("data-val"),
+                btn = "#button" +rqId;
+            $('#commentRqId').val(rqId);
+            $('#commentModal').modal('show'); 
+        });
+    }
+    // Create comment as audit 
+    $('#submitComment').click(function(){
+            event.preventDefault();
+            // On click change the buttons status
+            $.ajax({
+                type: 'POST',
+                url: 'manage.php',
+                data: $("#commentForm").serialize(),
+                success: function(msg){
+                    //var current = $('#infoMessage').html(),
+                    //    newMsg = current + " " + msg;
+                    $('#commentModal').modal('hide');
+                    $('#infoMessage').html(msg);
+                }
+            });
+    });
+    
+    
+    // Add comment modal popup
+    for(j = 0; j < $(".reassign").length; j++ ) {
+        // Get the request id and find the individual button
+        var rqId = $($('.reassign')[j]).attr('data-val');
+        console.log(rqId);
+        var reassign = "#reassign" + rqId;
+        
+        $(reassign).click(function(){
+            event.preventDefault();
+            
+            // On click change the buttons status
+            var rqId = $(this).attr("data-val"),
+                btn = "#button" +rqId,
+                assignedTo = $("#heading" + rqId).attr('data-assigned');
+            
+            $('#reassignRqId').val(rqId);
+            $('#reassignAssignedTo').val(assignedTo);
+            $('#reassignModal').modal('show'); 
+            console.log(assignedTo);
+        });
+    }
+    // Create reassign as audit 
+    $('#submitReassign').click(function(){
+            event.preventDefault();
+            // On click change the buttons status
+            $.ajax({
+                type: 'POST',
+                url: 'manage.php',
+                data: $("#reassignForm").serialize(),
+                success: function(msg){
+                    //var current = $('#infoMessage').html(),
+                    //    newMsg = current + " " + msg;
+                    $('#reassignModal').modal('hide');
+                    $('#infoMessage').html(msg);
+                }
+            });
+    });
 }

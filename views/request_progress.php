@@ -5,22 +5,28 @@ $MM = "Marketing Manager";
 $CrM = "Creative Manager";
 $CoM = "Coms Manager";
 
+$user = $_SESSION['user_group'];
+
+if ($user == 'Admin') {
+    $user = 'Product Area 1';
+}
 ?>
     <div class="container">
         <div class="row">
             <div class="col-md-10 col-md-offset-1">
-                <h3>Manage <?=$status ?> requests <small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
+                <h3>View request progress <small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
                 <hr />
-                
+                <p>These are all the requests current assigned to you.</p>
                 <br />
                 <div id="infoMessage"></div>
                 <!-- register form -->
                 
                 <div class="taskList panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                 <?php 
-                    $tasks = $management->viewTasks($status); 
+                    $tasks = $management->viewTasksByAssigned($user); 
 
                     while($row = $tasks->fetch_assoc()) { 
+                        $status = $row['status'];
                         
                         $scope = $management->getScopeRecord($row['request_id']);
                         $log = $management->getAuditLog($row['request_id']);
@@ -71,41 +77,36 @@ $CoM = "Coms Manager";
                                   </button>
                                   <ul class="dropdown-menu" role="menu">
                                     <?php
-                                        displayActions($row['status'], $row['request_id']);
+                                        displayActions('Comment', $row['request_id']);
                                     ?>
                                   </ul>
                                 </div>
                           </h4>
                         </div>
-                        <div id="heading<?=$row['request_id']?>" class="panel-collapse collapse" role="tabpanel" aria-labelledby="panel<?=$row['request_id']?>" data-assigned="<?=$row['request_assigned']?>">
+                        <div id="heading<?=$row['request_id']?>" class="panel-collapse collapse" role="tabpanel" aria-labelledby="panel<?=$row['request_id']?>">
                           <div class="panel-body">
-                            <p><b>Time submitted:</b> <?=$row['date_created']?><br />
+                            <p><b>Date submitted:</b> <?=$row['date_created']?><br />
                                <b>Category:</b> <?=$row['request_category']?><br />
-                               <b>Assigned to:</b> <?=$row['request_assigned']?><br />
-                               <b>Due by:</b> <?=$row['date_due']?><br />
                               </p>
                             <p><?=$row['description']?></p>
                             
-                            <?php if( $status == "scoped" || $status == "approved" || $status == "backlog"  || $status == "pending" || $status == "query" ) { ?>
+                            <?php if( 1 == 1 ) { ?>
                                 <div class="scopeNumbers detail">
+                                    <h5>Scoping Information</h5>
                                     
-                                    <?php   
-                                        if($scope == null) {
-                                        }
-                                        else {
-                                           echo '<h5>Scoping Information</h5>';
-                                           displayScopeAmounts($scope);
-                                    ?>
-                                        <p class="clear">
-                                           <b>Scoped by:</b> <?=$scope['scoper']?><br />
-                                           <b>On:</b> <?=$scope['date_scoped']?><br />
-                                        </p>
-                                    <?php } ?>
+                                    <?php  displayScopeAmounts($scope); ?>
+                                    <p class="clear">
+                                        <br />
+                                       <b>Scoped by:</b> <?=$scope['scoper']?><br />
+                                       <b>On:</b> <?=$scope['date_scoped']?><br />
+                                    </p>
                                 </div>
                                 <div class="subTasks detail">
+                                    <h5>Subtasks</h5>
                                     <?php displaySutbtasks($subtasks); ?>
                                 </div>
                                 <div class="auditLog detail">
+                                    <h5>History</h5>
                                     <?php displayAuditLog($log); ?>
                                 </div>
                             <?php } ?>
@@ -147,8 +148,8 @@ $CoM = "Coms Manager";
         </div>
     </div>
     
-    <?php include('views/template/modal_comment.php') ?>
-    <?php include('views/template/modal_reassign.php') ?>
+    <?php $status = 'Progress';
+          include('views/template/modal_comment.php'); ?>
      
     <script src="js/jquery-2.1.4.min.js" type="text/javascript"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>

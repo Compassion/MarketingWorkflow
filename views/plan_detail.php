@@ -4,6 +4,7 @@
 
     $tasks = $management->getTaskById($_GET['pl_id']); 
     $scope = $management->getScopeRecord($_GET['pl_id']); 
+    $audit_log = $management->getAuditLog($_GET['pl_id']); 
     $capacity = $management->returnCapacity();
     $load = $management->buildWorkArray();
 
@@ -41,6 +42,8 @@
                         }
                     }
                 } 
+                    
+                    
                     ?></p>
                 
                 
@@ -64,7 +67,7 @@
                 <h4><?php echo $tasks['request_name']?> 
                     <br /><small><?php echo $tasks['request_type']?> - <?php echo $tasks['request_category']?>
                     <br />Submitted by  <?php echo $tasks['request_maker']?> on <?php echo $tasks['date_created']?>, Due: <?php echo $tasks['date_due']?></small></h4>
-             
+                <p> <?php echo $tasks['description']?></p>
                 <br />
                 
                 <div class="scopeNumbers row">
@@ -95,6 +98,12 @@
                 </form>
             </div>
         </div>
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <h3>Audit log</h3>
+                <?php displayAuditLog($audit_log); ?>
+            </div>
+        </div>
     </div>
 
     <script src="http://code.jquery.com/jquery-2.1.1.min.js" type="text/javascript"></script>
@@ -110,6 +119,7 @@
         wl.build(load, cap);
         wl.getProposal();
         wl.buildPropLines();
+        wl.buildHighStock('hc');
         
         $("#go-prop").click( function() { 
             wl.build(load, cap);
