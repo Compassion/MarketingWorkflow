@@ -4,8 +4,10 @@
   * handles the management of requests. Essential it interfaces between ASANA and WorkFlow App
   */
 
+require_once("classes/Mandrill.php"); 
 require_once("classes/Asana.php");
 require_once("core/functions.php");
+require_once("core/keys.php");
 
 class Management
 {
@@ -15,6 +17,7 @@ class Management
     public $messages = array();
     
     public $asana = null;
+    public $mandrill = null;
     
     // On init check post variables and then submit request
     public function __construct()
@@ -33,8 +36,15 @@ class Management
         // Create Asana Class
         $this->asana = new Asana(array('apiKey' => KEY_ASANA));
         
+        // Create Mandrill Class
+        $this->mandrill = new Mandrill(KEY_MANDRILL);
+        
+        // Backgroundy making do-e stuff-y
+        if (isset($_POST["request_made"])) {
+            $this->makeRequest();
+        }
         if (isset($_POST['submit_to_asana'])) {
-            $this->sendRequestToAsana($_POST['submit_to_asana']);
+            $this->sendRequestToAsana($_POST);
         }
         if (isset($_POST['submit_to_backlog'])) {
             $this->updateRequestStatus($_POST['submit_to_backlog'], "Backlog");
@@ -108,10 +118,19 @@ class Management
         
         // If no errors grab all the tasks with the right status
         if (!$this->db_connection->connect_errno) {
-            $sql = "SELECT * FROM `requests` WHERE `request_assigned` = '". $request_assigned ."' ORDER BY `status` DESC, `date_created`;";
-            $rq_list = $this->db_connection->query($sql);
-            
-            return $rq_list;
+            if($request_assigned == 'Admin') {
+                $sql = "SELECT * FROM `requests` ORDER BY `status` DESC, `date_created`;";
+                //WHERE `status` NOT LIKE 'Complete' AND `status` NOT LIKE 'Declined'
+                $rq_list = $this->db_connection->query($sql);
+
+                return $rq_list;
+                
+            } else {
+                $sql = "SELECT * FROM `requests` WHERE `request_assigned` = '". $request_assigned ."' ORDER BY `status` DESC, `date_created`;";
+                $rq_list = $this->db_connection->query($sql);
+
+                return $rq_list;
+            }
         }
     }
     
@@ -551,6 +570,49 @@ class Management
         }
     }
     
+    // Create a deliverable record
+    private function createWorkdates($post) 
+    {
+        //var_dump($post);
+        if (empty($post['submit_to_asana'])) {
+            $this->errors[] = "This is really weird.";
+        } else {
+            $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+            
+            // Check DB
+            if (!$this->db_connection->set_charset("utf8")) {
+                $this->errors[] = $this->db_connection->error;
+            }
+            
+            // If no errors push away!
+            if (!$this->db_connection->connect_errno) {
+                
+                // Clean data
+                $request_id = $this->db_connection->real_escape_string(strip_tags($post['submit_to_asana'], ENT_QUOTES));
+                $scope_id = $this->db_connection->real_escape_string(strip_tags($post['scope_id'], ENT_QUOTES));
+                
+                $wd_submitted = date('Y-m-d');
+                $wd_start =  $this->db_connection->real_escape_string(strip_tags($post['plan_start_date'], ENT_QUOTES));
+                $wd_end =  $this->db_connection->real_escape_string(strip_tags($post['plan_end_date'], ENT_QUOTES));
+                
+                // Build SQL
+                $insert = "INSERT INTO `work_dates`(`request_id`, `scope_id`, `wd_submitted`, `wd_start`, `wd_end`) VALUES ('$request_id', '$scope_id', '$wd_submitted', '$wd_start', '$wd_end');";
+
+                // Insert into database
+                $insert_wd = $this->db_connection->query($insert);
+
+                // Check if it worked
+                if ($insert_wd) {
+                    $this->messages[] = "<strong>Done!</strong> Log created.";  
+                } else {
+                    $this->errors[] = "<strong>FAILURE!</strong> Something broke - " .$insert; 
+                }     
+            } else {
+                $this->errors[] = "<strong>Epic Fail!</strong> Sorry, no database connection.";
+            }
+        }
+        
+    }
     
     /*
      *
@@ -676,7 +738,12 @@ class Management
             $date_started = $this->db_connection->real_escape_string(strip_tags($task['date_started'], ENT_QUOTES));
             $date_due = $this->db_connection->real_escape_string(strip_tags($task['date_due'], ENT_QUOTES));
             $project_assigned = $this->db_connection->real_escape_string(strip_tags($task['project_assigned'], ENT_QUOTES));
-            $person_assigned = $this->db_connection->real_escape_string(strip_tags($task['person_assigned'], ENT_QUOTES));
+            
+            if(isset($task['person_assigned'])) {
+                $person_assigned = $this->db_connection->real_escape_string(strip_tags($task['person_assigned'], ENT_QUOTES));
+            } else {
+                $person_assigned = "";
+            }
             $asana_name = $this->db_connection->real_escape_string(strip_tags($task['asana_name'], ENT_QUOTES));
             $work_days = $this->db_connection->real_escape_string(strip_tags($task['work_days'], ENT_QUOTES));
             
@@ -829,8 +896,10 @@ class Management
     }
     
     // CREATE MORE WORK FOR US! Sad times...
-    private function sendRequestToAsana($rq_id) 
+    private function sendRequestToAsana($post) 
     {
+        $rq_id = $post['submit_to_asana'];
+        
         $options = array('opt_fields' => 'name,created_at,due_on,modified_at,tags, tags.name, tags.id, assignee.name, assignee.email');
         
         $task = $this->getTaskById($rq_id);
@@ -839,15 +908,26 @@ class Management
         
         $taskId = $rq_id;
         $name = $taskId. " - ". $task['request_name'];
-        $description = $task['description'] . "Request ID " . $taskId .", Requested by " . $task['request_maker'];
-        $created_at = $task['date_created']; // This is READ ONLY :(
-        $due_on = $task['date_due'];
+        
+        $created_at = '-- Gantt data, leave at the end --
+start: "' .$post['plan_start_date'] .'"'; // This is READ ONLY so pump into instagantt
+        $due_on = $post['plan_end_date']; //$task['date_due'];
         $projectId = $scope['project_assigned'];
         $assignee = $scope['scoper'];
+        
         $followers = array(array(
             'email' => $scope['scoper']
         ));
         
+        
+        $description = $task['description'] . " \n \n Request ID " . $taskId .", Requested by " . $task['request_maker'] ." \n Originally due " .$task['date_due'] .".\n Requested on " .$task['date_created'] ." \n \n " .$created_at;
+        
+        /*
+        $task['date_due']
+        $task['date_created']
+        $post['plan_start_date'];
+        $post['plan_end_date'];
+        */
         $tags = array( "Product: " . $scope['scope_product'], "Coms: " . $scope['scope_coms'], "Digital: " . $scope['scope_digital'], "Design: " . $scope['scope_design'], "Video: " . $scope['scope_video'], "External: " . $scope['scope_external']           
         );
        
@@ -875,7 +955,8 @@ class Management
             $this->errors[] = "<strong>Unable to create task in Asana</strong> Response code: " . $this->asana->responseCode;
             return;
         } else {
-            $this->messages[] = "<strong>Task created!</strong> Who\'s awesome? You are!";
+            $this->messages[] = "<strong>Task created!</strong> Who's awesome? You are!";
+            $this->createWorkdates($post);
             $this->updateRequestStatus($rq_id, "Complete");
         }
         
@@ -1004,6 +1085,212 @@ class Management
          }
      }
     
+    
+    // MANDRILL STUFF!
+    private function sendEmail($email)
+    {   
+        try {
+            $mandrill = $this->mandrill;
+            
+            $message = array(
+                'html' => $email['content'],
+                //'text' => 'Example text content',
+                'subject' => $email['subject'],
+                'from_email' => $email['from_email'],
+                'from_name' => $email['from_name'],
+                'to' => array(
+                    array(
+                        'email' => $email['to_email'],
+                        'name' => $email['to_name'],
+                        'type' => 'to'
+                    )
+                ),
+                //'headers' => array('Reply-To' => 'message.reply@example.com'),
+                //'important' => false,
+                'track_opens' => true,
+                //'track_clicks' => null,
+                'auto_text' => true,
+                //'auto_html' => null,
+                'inline_css' => true,
+                'url_strip_qs' => false,
+                //'preserve_recipients' => null,
+                //'view_content_link' => null,
+                //'bcc_address' => 'message.bcc_address@example.com',
+                //'tracking_domain' => null,
+                //'signing_domain' => null,
+                //'return_path_domain' => null,
+                'merge' => true,
+                'merge_language' => 'mailchimp',
+                'global_merge_vars' => array(
+                    array(
+                        'name' => $email['to_name'],
+                        'content' => 'merge1 content'
+                    )
+                ),
+                /*
+                'merge_vars' => array(
+                    array(
+                        'rcpt' => 'recipient.email@example.com',
+                        'vars' => array(
+                            array(
+                                'name' => 'merge2',
+                                'content' => 'merge2 content'
+                            )
+                        )
+                    )
+                ),*/
+                'tags' => array($email['tag'])
+                //'subaccount' => 'customer-123',
+                //'google_analytics_domains' => array('example.com'),
+                //'google_analytics_campaign' => 'message.from_email@example.com',
+                //'metadata' => array('website' => 'www.example.com'),
+                /*'recipient_metadata' => array(
+                    array(
+                        'rcpt' => 'recipient.email@example.com',
+                        'values' => array('user_id' => 123456)
+                    )
+                ),
+                'attachments' => array(
+                    array(
+                        'type' => 'text/plain',
+                        'name' => 'myfile.txt',
+                        'content' => 'ZXhhbXBsZSBmaWxl'
+                    )
+                ),
+                'images' => array(
+                    array(
+                        'type' => 'image/png',
+                        'name' => 'IMAGECID',
+                        'content' => 'ZXhhbXBsZSBmaWxl'
+                    )
+                )*/
+            );
+            $async = false;
+            $ip_pool = 'Main Pool';
+            //$send_at = $email['send_at'];
+            $result = $mandrill->messages->send($message, $async, $ip_pool/*, $send_at */);
+            //print_r($result);
+            /*
+            Array
+            (
+                [0] => Array
+                    (
+                        [email] => recipient.email@example.com
+                        [status] => sent
+                        [reject_reason] => hard-bounce
+                        [_id] => abc123abc123abc123abc123abc123
+                    )
+
+            )
+            */
+        } catch(Mandrill_Error $e) {
+            // Mandrill errors are thrown as exceptions
+            $this->errors[] = '<strong>A mandrill error occurred:</strong> ' . get_class($e) . ' - ' . $e->getMessage();
+            // A mandrill error occurred: Mandrill_Unknown_Subaccount - No subaccount exists with the id 'customer-123'
+            throw $e;
+            return false;
+        }
+        $this->messages[] = "<strong>Email sent!</strong>";
+        return true;
+        
+    }
+    
+    private function sendRequestReceived($rq_id)
+    {
+        $rq = $this->getTaskById($rq_id);
+        //var_dump($rq);
+
+        $email['content'] = "<p>Thanks for your request! We will be in touch.</p><p>Your request ID is " .$rq_id ."</p><p>Request name - " .$rq['request_name'] .".<br />Description - " .$rq['description'] ."<br />Requested on " .$rq['date_created'] ."</p><p><br />Thanks!<br />Have a great day.</p>";
+        
+        $email['subject'] = 'Thank you for your request!';
+        $email['from_email'] = 'workflow@compassion.com.au';
+        $email['from_name'] = 'Workflow Wombat';
+        $email['to_email'] = $rq['request_maker'];
+        $email['to_name'] = 'friend';
+        $email['tag'] = 'Rq Received';
+        
+        $this->sendEmail($email);
+    }
+    
+    
+    // REQUEST MAKING!
+    private function makeRequest()
+    {
+        if (empty($_POST['request_name'])) {
+            $this->errors[] = "You have no name!";
+        } else {
+            $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+            
+            // Check DB
+            if (!$this->db_connection->set_charset("utf8")) {
+                $this->errors[] = $this->db_connection->error;
+            }
+            
+            // If no errors push away!
+            if (!$this->db_connection->connect_errno) {
+                // Create variables and clean them of junk
+                $rq_maker = $this->db_connection->real_escape_string(strip_tags($_POST['request_maker'], ENT_QUOTES));
+                $rq_created = $this->db_connection->real_escape_string(strip_tags($_POST['date_created'], ENT_QUOTES));
+                $rq_name = $this->db_connection->real_escape_string(strip_tags($_POST['request_name'], ENT_QUOTES));
+                $rq_desc = $this->db_connection->real_escape_string(strip_tags($_POST['description'], ENT_QUOTES));
+                $rq_due = $this->db_connection->real_escape_string(strip_tags($_POST['date_due'], ENT_QUOTES));
+                $rq_type = $this->db_connection->real_escape_string(strip_tags($_POST['request_type'], ENT_QUOTES)); 
+                $rq_category = $this->db_connection->real_escape_string(strip_tags($_POST['request_category'], ENT_QUOTES)); 
+                
+                
+                // Logic for who to assign stuff to
+                if($_POST['request_type'] == "Ongoing Servicing") {
+                    $rq_assigned = 'Workflow';
+                } else {
+                    switch($_POST['request_category']) {
+                        case "Advocacy/Fundraising":
+                        case "Trip":
+                            $rq_assigned = 'Product Area 1';
+                            break;
+                        case "Major Givers":
+                        case "Church":
+                            $rq_assigned = 'Product Area 2';
+                            break;
+                        case "Events":
+                        case "Ambassadors":
+                            $rq_assigned = 'Product Area 3';
+                            break;
+                        default:
+                            $rq_assigned = 'Marketing Manager';
+                            break;
+                    }
+                }
+                
+                // Check if request name already exists
+                $chq = "SELECT `request_name` FROM `requests` WHERE `request_name` = '" . $rq_name . "' AND `date_due` = '" . $rq_due . "';";
+                $chq_query = $this->db_connection->query($chq);
+                
+                if($chq_query->num_rows > 0) {
+                    $this->messages[] = "<strong>Quit hitting refresh.</strong> Your request has already been received.";
+                } else {
+                    // Build SQL
+                    $sql = "INSERT INTO requests (request_maker, date_created, request_name, description, date_due, request_type, request_category, request_assigned, status)
+                           VALUES('" . $rq_maker . "', '" . $rq_created . "', '" . $rq_name . "', '" . $rq_desc . "', '" . $rq_due . "', '" . $rq_type . "', '" . $rq_category . "', '" . $rq_assigned . "', 'Query');";   
+
+
+                    // Insert into database
+                    $query_new_user_insert = $this->db_connection->query($sql);
+
+                    // Check if it worked
+                    if ($query_new_user_insert) {
+                        $this->messages[] = "<strong>WINNING!</strong> Request successfully received.";
+                        $last_insert = $this->db_connection->insert_id;
+                        $this->sendRequestReceived($last_insert);
+                    } else {
+                        $this->errors[] = "Sorry something broke.";
+                    }
+                }     
+            } else {
+                $this->errors[] = "Sorry, no database connection.";
+            }
+        }
+        
+    }
     
     // END OF THE ROAD BUDDY
 }

@@ -37,7 +37,7 @@ function addAjax(assigned, creator) {
             var backlog = "#backlog" + rqId;
 
 
-            $(backlog).click(function(){
+            $(backlog).click(function(event){
                 event.preventDefault();
                 // On click change the buttons status
                 var rqId = $(this).attr("data-val"),
@@ -67,7 +67,7 @@ function addAjax(assigned, creator) {
 
         var pending = "#pending" + rqId;
 
-        $(pending).click(function(){
+        $(pending).click(function(event){
             event.preventDefault();
             // On click change the buttons status
             var rqId = $(this).attr("data-val"),
@@ -98,7 +98,7 @@ function addAjax(assigned, creator) {
             var approve = "#approve" + rqId;
 
 
-            $(approve).click(function(){
+            $(approve).click(function(event){
                 event.preventDefault();
                 // On click change the buttons status
                 var rqId = $(this).attr("data-val"),
@@ -136,7 +136,7 @@ function addAjax(assigned, creator) {
             var decline = "#decline" + rqId;
 
 
-            $(decline).click(function(){
+            $(decline).click(function(event){
                 event.preventDefault();
                 // On click change the buttons status
                 var rqId = $(this).attr("data-val"),
@@ -171,7 +171,7 @@ function addAjax(assigned, creator) {
         var rescope = "#rescope" + rqId;
 
 
-        $(rescope).click(function(){
+        $(rescope).click(function(event){
             event.preventDefault();
             // On click change the buttons status
             var rqId = $(this).attr("data-val"),
@@ -201,7 +201,7 @@ function addAjax(assigned, creator) {
 
         var preapprove = "#preapprove" + rqId;
 
-        $(preapprove).click(function(){
+        $(preapprove).click(function(event){
             event.preventDefault();
             // On click change the buttons status
             var rqId = $(this).attr("data-val"),
@@ -229,7 +229,7 @@ function addAjax(assigned, creator) {
 
         var chilidecline = "#chilidecline" + rqId;
 
-        $(chilidecline).click(function(){
+        $(chilidecline).click(function(event){
             event.preventDefault();
             // On click change the buttons status
             var rqId = $(this).attr("data-val"),
@@ -256,7 +256,7 @@ function addAjax(assigned, creator) {
 
         var delet = "#delete" + rqId;
 
-        $(delet).click(function(){
+        $(delet).click(function(event){
             event.preventDefault();
             // On click change the buttons status
             var rqId = $(this).attr("data-val"),
@@ -284,7 +284,7 @@ function addAjax(assigned, creator) {
 
         var re_approve = "#re_approve" + rqId;
 
-        $(re_approve).click(function(){
+        $(re_approve).click(function(event){
             event.preventDefault();
             // On click change the buttons status
             var rqId = $(this).attr("data-val"),
@@ -312,7 +312,7 @@ function addAjax(assigned, creator) {
 
         var comment = "#comment" + rqId;
 
-        $(comment).click(function(){
+        $(comment).click(function(event){
             event.preventDefault();
             // On click change the buttons status
             var rqId = $(this).attr("data-val"),
@@ -322,7 +322,7 @@ function addAjax(assigned, creator) {
         });
     }
     // Create comment as audit 
-    $('#submitComment').click(function(){
+    $('#submitComment').click(function(event){
             event.preventDefault();
             // On click change the buttons status
             $.ajax({
@@ -346,7 +346,7 @@ function addAjax(assigned, creator) {
         console.log(rqId);
         var reassign = "#reassign" + rqId;
         
-        $(reassign).click(function(){
+        $(reassign).click(function(event){
             event.preventDefault();
             
             // On click change the buttons status
@@ -361,7 +361,7 @@ function addAjax(assigned, creator) {
         });
     }
     // Create reassign as audit 
-    $('#submitReassign').click(function(){
+    $('#submitReassign').click(function(event){
             event.preventDefault();
             // On click change the buttons status
             $.ajax({

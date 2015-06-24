@@ -4,7 +4,7 @@ require_once('views/template/header.php');
 
     <div class="container">
         <div class="row">
-            <div class="col-md-6 col-md-offset-3">
+            <div class="col-md-8 col-md-offset-2">
                 
                 <h3>Scope request<small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
                 <hr />

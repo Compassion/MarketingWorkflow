@@ -1,4 +1,4 @@
-$(".addDel").click(function() {
+$(".addDel").click(function(event) {
     event.preventDefault();
     createDeliverableForm();
 });

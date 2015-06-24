@@ -1,10 +1,13 @@
-<?php require_once('views/template/header.php'); ?>
+<?php 
+    require_once('views/template/header.php'); 
+    require_once('views/template/nav.php');
+?>
 
     <div class="container">
         <div class="row">
             <div class="col-md-6 col-md-offset-3">
       
-                <h3>Hi <?php echo $_SESSION['user_name']; ?> <small><a href="index.php?logout" class="pull-right btn btn-default">Logout</a></small></h3>
+                <h3>Hi <?php echo $_SESSION['user_name']; ?></h3>
                 <hr />
                 <br />
                 <span id="infoMessage"></span>

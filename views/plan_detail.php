@@ -1,6 +1,7 @@
 <?php 
     require_once('views/template/header.php');
     require_once('core/functions.php');
+    require_once('views/template/nav.php');
 
     $tasks = $management->getTaskById($_GET['pl_id']); 
     $scope = $management->getScopeRecord($_GET['pl_id']); 
@@ -13,8 +14,8 @@
 ?>
     <div class="container">
         <div class="row">
-            <div class="col-md-6 col-md-offset-3">
-                <h3>Planning <small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
+            <div class="col-md-8 col-md-offset-2">
+                <h3>Planning</h3>
                 <hr />
                 <p class="text-center">
                     
@@ -42,9 +43,7 @@
                         }
                     }
                 } 
-                    
-                    
-                    ?></p>
+                ?></p>
                 
                 
                 
@@ -67,11 +66,11 @@
                 <h4><?php echo $tasks['request_name']?> 
                     <br /><small><?php echo $tasks['request_type']?> - <?php echo $tasks['request_category']?>
                     <br />Submitted by  <?php echo $tasks['request_maker']?> on <?php echo $tasks['date_created']?>, Due: <?php echo $tasks['date_due']?></small></h4>
-                <p> <?php echo $tasks['description']?></p>
+                <p> <?php echo $tasks['description']; ?></p>
                 <br />
                 
                 <div class="scopeNumbers row">
-                    <?php displayScopeAmounts($scope); ?>
+                    <?php displayScopeAmountSquares($scope); ?>
                 </div>
                 <br />
                 
@@ -80,15 +79,14 @@
                 <?php displayWorkloadBars($scope); ?>
                 <!-- // Progress Bars -->
                 
-                <?php 
-                    //var_dump($tasks);
-                    //var_dump($scope);
-                    ?>
-                
                 <div id="hc"></div>
                 <br />
                 <form class="text-center" method="post" action="plan.php" name="requestform" id="requestForm">
                     <input type="hidden" name="submit_to_asana" value="<?=$_GET['pl_id']?>" />
+                    <input type="hidden" name="scope_id" value="<?=$scope['scope_id']?>" />
+                    <input type="hidden" name="plan_start_date" value="<?=$tasks['date_created']?>" id="plan_start_date" />
+                    <input type="hidden" name="plan_end_date" value="<?=$tasks['date_due'] ?>" id="plan_end_date" />
+                    
                     <button class="btn btn-lg btn-success" data-loading-text="Magic is Happening..." id="sendToAsana"><span class="glyphicon glyphicon-ok"></span> Send to Asana</button>
                 </form>
                 <br />
@@ -128,6 +126,14 @@
         });
         $("#sendToAsana").click( function() { 
             var $btn = $(this).button('loading');
+        });
+        $('#sDate').change( function() { 
+            var sDate = $(this).val(); 
+            $('#plan_start_date').val(sDate);
+        });
+        $('#eDate').change( function() { 
+            var eDate = $(this).val(); 
+            $('#plan_end_date').val(eDate);
         });
         
     </script>

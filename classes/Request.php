@@ -4,6 +4,9 @@
   * handles the submission of requests
   */
 
+require_once("classes/Mandrill.php"); 
+require_once("core/keys.php");
+
 class Request
 {
     // Basic Class Setup
@@ -95,6 +98,7 @@ class Request
                     // Check if it worked
                     if ($query_new_user_insert) {
                         $this->messages[] = "<strong>WINNING!</strong> Request successfully received.";
+                        $last_insert = $this->db_connection->insert_id;
                     } else {
                         $this->errors[] = "Sorry something broke.";
                     }

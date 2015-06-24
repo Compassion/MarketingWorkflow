@@ -1,15 +1,15 @@
 <?php 
-require_once('views/template/header.php');
+require_once('views/template/header.php'); 
+require_once('views/template/nav.php');
 
 $MM = "Marketing Manager";
 $CrM = "Creative Manager";
 $CoM = "Coms Manager";
-
 ?>
     <div class="container">
         <div class="row">
-            <div class="col-md-10 col-md-offset-1">
-                <h3>Manage <?=$status ?> requests <small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
+            <div class="col-md-8 col-md-offset-2">
+                <h3>Manage <?=$status ?> requests </h3>
                 <hr />
                 
                 <br />
@@ -20,14 +20,25 @@ $CoM = "Coms Manager";
                 <?php 
                     $tasks = $management->viewTasks($status); 
 
-                    while($row = $tasks->fetch_assoc()) { 
+                    while($row = $tasks->fetch_assoc()) {
                         
+                        if( 
+                            ($status == 'query' && ($row['request_assigned'] == $_SESSION['user_group'] || $_SESSION['user_group'] == 'Admin')) ||
+                            $status != 'query'
+                          ) {
+                            
                         $scope = $management->getScopeRecord($row['request_id']);
                         $log = $management->getAuditLog($row['request_id']);
                         $subtasks = $management->getDeliverables($row['request_id']);
-                        
+                            
                         if($scope == null) {
-                            if($log->num_rows > 0) {
+                            if($status == 'pending') {
+                                $rq_status = 'pending';
+                            }
+                            elseif($status == 'Declined') {
+                                $rq_status = 'Declined';
+                            }
+                            elseif($log->num_rows > 0) {
                                 $rq_status = "Pre Approved";
                             }
                             else {
@@ -44,9 +55,7 @@ $CoM = "Coms Manager";
                         <div class="panel-heading" role="tab" id="panel<?=$row['request_id']?>">
                           <h4 class="panel-title clearfix">
                             <a data-toggle="collapse" data-parent="#accordion" href="#heading<?=$row['request_id']?>" aria-expanded="false" aria-controls="heading<?=$row['request_id']?>">
-                              <?=$row['request_name']?> <span class="small"><?=$row['date_due']?> </span>
-                            </a>
-                              <!-- Single button -->
+                              <?=$row['request_name']?> <span class="small"><?=transformDate($row['date_due']);?> </span>
                                 <div class="btn-group pull-right">
                                 <!-- STARS -->
                                 <?php 
@@ -65,55 +74,99 @@ $CoM = "Coms Manager";
                                     }
                                     
                                     ?>
-                                <!-- // STARS -->
-                                  <button type="button" class="btn btn-<?=$row['status']?> dropdown-toggle btn-xs" data-toggle="dropdown" aria-expanded="false" id="button<?=$row['request_id']?>">
-                                    <?=$row['status']?> <span class="caret"></span>
-                                  </button>
-                                  <ul class="dropdown-menu" role="menu">
-                                    <?php
-                                        displayActions($row['status'], $row['request_id']);
-                                    ?>
-                                  </ul>
                                 </div>
+                            </a>
                           </h4>
                         </div>
                         <div id="heading<?=$row['request_id']?>" class="panel-collapse collapse" role="tabpanel" aria-labelledby="panel<?=$row['request_id']?>" data-assigned="<?=$row['request_assigned']?>">
+                          <div class="panel-footer">
+                            <div class="btn-toolbar" role="toolbar">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-<?=$row['status']?> dropdown-toggle btn btn-xs" data-toggle="dropdown" aria-expanded="false" id="button<?=$row['request_id']?>">Status:  <?=$row['status']?>
+                                  </button>
+                                </div>
+                              <!--<ul class="dropdown-menu" role="menu">-->
+                                <?php
+                                    displayActionsInLine($row['status'], $row['request_id']);
+                                ?>
+                              <!--</ul>-->
+                            </div>
+                          </div>
                           <div class="panel-body">
-                            <p><b>Time submitted:</b> <?=$row['date_created']?><br />
+                              
+                            <?php /*<p><b>Time submitted:</b> <?=$row['date_created']?><br />
                                <b>Category:</b> <?=$row['request_category']?><br />
                                <b>Assigned to:</b> <?=$row['request_assigned']?><br />
                                <b>Due by:</b> <?=$row['date_due']?><br />
-                              </p>
-                            <p><?=$row['description']?></p>
-                            
-                            <?php if( $status == "scoped" || $status == "approved" || $status == "backlog"  || $status == "pending" || $status == "query" ) { ?>
-                                <div class="scopeNumbers detail">
-                                    
-                                    <?php   
-                                        if($scope == null) {
-                                        }
-                                        else {
-                                           echo '<h5>Scoping Information</h5>';
-                                           displayScopeAmounts($scope);
-                                    ?>
-                                        <p class="clear">
-                                           <b>Scoped by:</b> <?=$scope['scoper']?><br />
-                                           <b>On:</b> <?=$scope['date_scoped']?><br />
-                                        </p>
-                                    <?php } ?>
+                              </p> */ ?>
+                            <div class="row">
+                                <div class="request-data col-xs-5">
+                                    <div class="row">
+                                        <div class="col-xs-6 bold">Request Date</div>
+                                        <div class="col-xs-6"> <?=transformDate($row['date_created'])?></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-6 bold">Due</div>
+                                        <div class="col-xs-6"> <?=transformDate($row['date_due'])?></div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xs-6 bold">Category</div>
+                                        <div class="col-xs-6"> <?=$row['request_category']?></div>
+                                    </div>
                                 </div>
+                                <div class="col-md-5">
+                                   <p><b>Description</b><br /><?=$row['description']?></p>
+                                </div>
+                            </div>  
+                            
+                            <?php if( $status == "scoped" || $status == "approved" || $status == "backlog"  || $status == "pending" || $status == "query" ) { 
+                                if($scope == null) {
+                                }
+                                else {
+                              ?>
+                                <div class="scopeNumbers row">
+                                    <div class="col-md-12"><h4>Scope</h4></div>
+                                    
+                                    <div class="col-md-12">
+                                        <div class="row">
+                                            <div class="scope-data col-xs-5">
+                                                <div class="row">
+                                                    <div class="col-xs-6 bold">Scoped by</div>
+                                                    <div class="col-xs-6"><?=cutEmail($scope['scoper']);?></div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-xs-6 bold">On</div>
+                                                    <div class="col-xs-6">
+                                                        <?=transformDate($scope['date_scoped']); ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-5 col-xs-5">
+                                                <div class="row">
+                                                    <?php   
+                                                           echo '<div class="col-xs-12">';
+                                                           displayScopeAmounts($scope);
+                                                           echo '</div>';
+                                                        ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php } ?>
                                 <div class="subTasks detail">
                                     <?php displaySutbtasks($subtasks); ?>
                                 </div>
                                 <div class="auditLog detail">
                                     <?php displayAuditLog($log); ?>
                                 </div>
-                            <?php } ?>
+                            <?php 
+                              } ?>
                           </div>
                         </div>
                     </div>
                 
-                 <?php } ?>
+                 <?php } } ?>
                 </div>
                 
                 <p class="text-center">
@@ -157,6 +210,9 @@ $CoM = "Coms Manager";
     <script type="text/javascript">
         $(document).ready(function() {
            addAjax('<?=$_SESSION['user_group']?>', '<?=$_SESSION['user_email']?>'); 
+            $(function () {
+              $('[data-toggle="tooltip"]').tooltip()
+            });
         });
     </script>
     <!-- // Ajax Script -->

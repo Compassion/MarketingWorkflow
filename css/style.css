@@ -7,19 +7,20 @@
     /*margin: 0 auto;*/
     float: left;
     margin-left: 2%;
+    margin-bottom: 10px;
 }
 .scopeNumbers div.scoped:first-of-type {
     margin-left: 0;
 }
 .scoped:first-child {
     margin-left: 0;
-}
+}/*
 .scoped:hover {
     background-color: #e3e3e3;
 }
 .scoped:hover .number {
     font-weight: bold;
-}
+}*/
 .scoped .title {
     font-weight: bold;
     text-align: center;
@@ -95,5 +96,127 @@ button.btn {
     border-radius: 2px;
 }
 
+
+/* Panel List restyle */
+.panel-group .panel {
+    border-radius: 0px;
+}
+.panel-heading {
+    padding: 0;
+}
+.panel-title a {
+    padding: 10px;
+    display: block;
+}
+
+.panel-title a:hover {
+    text-decoration: none;
+    background-color: #dedede;
+}
+.panel-title a:focus {
+    text-decoration: none;
+    background-color: #dedede;
+}
+
+.scope {}
+.resscope {}
+.pending {}
+.approve {}
+.preapprove {}
+.plan {}
+.backlog {}
+.decline {}
+.chilidecline {}
+.delete {}
+.re_approve {}
+.comment {}
+.reassign {}
+
+/* Status button styles 
+.btn-query, .btn-Query {
+    background-color: #f1c40f;
+    color: #2c3e50;
+}
+.btn-scoped, .btn-Scoped {
+    background-color: #3498db;
+    color: #ecf0f1;
+}
+.btn-pending, .btn-Pending {
+    background-color: #e67e22;
+    color: #ecf0f1;
+}
+.btn-declined, .btn-Declined {
+    background-color: #34495e;
+    color: #ecf0f1;
+}
+.btn-complete, .btn-Complete {
+    background-color: #2ecc71;
+    color: #ecf0f1;
+}
+.btn-backlog, .btn-Backlog {
+    background-color: #e74c3c;
+    color: #ecf0f1;
+}
+.btn-approved, .btn-Approved {
+    background-color: #1abc9c;
+    color: #ecf0f1;
+}
+
+Redfining Bootstrap colours 
+.btn.btn-success {
+    background-color: #2ecc71;
+    color: #ecf0f1;
+}
+.btn.btn-info {
+    background-color: #3498db;
+    color: #ecf0f1;
+}
+.btn.btn-primary {
+    background-color: #1abc9c;
+    color: #ecf0f1;
+}
+.btn.btn-warning {
+    background-color: #f39c12;
+    color: #ecf0f1;
+}
+.btn.btn-danger {
+    background-color: #c0392b;
+    color: #ecf0f1;
+}*/
+
+
+/* Specific Status View */
+.auditLog table {
+    font-size: 11px;
+}
+.auditLog table td:nth-child(4), .auditLog table th:nth-child(4) {
+    text-align: right;
+}
+.subTasks table td:nth-child(3), .subTasks table th:nth-child(3) {
+    text-align: right;
+}
+
+.btn-group .btn-xs {
+    padding: 3px 6px;
+}
+.btn-toolbar .btn-xs .glyphicon {
+    margin-right: 5px;
+    font-size: 10px;
+}
+.bold {
+    font-weight: bold;
+}
+
+.panel-body h4 {
+    border-top: #f2f2f2 solid thin;
+    padding-top: 10px;
+    margin-top: 24px;
+}
+.panel-title a {
+    line-height: 25px;
+}
+.navbar.navbar-default {
+    margin-bottom: 0;
+}
 
 

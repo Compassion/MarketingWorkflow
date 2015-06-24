@@ -1,10 +1,12 @@
 <?php 
 require_once('views/template/header.php');
+require_once('core/functions.php');
+require_once('views/template/nav.php');
 ?>
     <div class="container">
         <div class="row">
             <div class="col-md-6 col-md-offset-3">
-                <h3>View Capacity <small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
+                <h3>View Capacity</h3>
                 <hr />
                 <input type="hidden" value="2015-05-01" id="sDate" />
                 <input type="hidden" value="2015-12-31" id="eDate" />

@@ -1,5 +1,6 @@
 <?php 
 require_once('views/template/header.php');
+require_once('views/template/nav.php');
 
 //var_dump($_SESSION);
 //var_dump($_GET);
@@ -40,10 +41,9 @@ if($scope == null) {
 ?>
     <div class="container">
         <div class="row">
-            <div class="col-md-10 col-md-offset-1">
+            <div class="col-md-8 col-md-offset-2">
                 
-                <h3>Scope request
-                    <small><a href="index.php" class="pull-right btn btn-default">Menu</a></small></h3>
+                <h3>Scope request</h3>
                 <hr />
                 <!-- // display errors -->
                 <br />

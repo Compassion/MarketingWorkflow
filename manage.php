@@ -5,13 +5,17 @@
 require_once("core/config.php"); 
 require_once("core/keys.php");
 require_once("classes/Management.php");
+require_once('core/functions.php');
 
 
 // Gotta get the request class
 $management = new Management();
 
+
+
 // Show the plan view
 if(isset($_GET['status'])) {
+    
     // status index exists
     $status = $_GET['status'];
     include("views/specific_status.php");
