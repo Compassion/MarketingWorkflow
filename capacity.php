@@ -12,6 +12,17 @@ $management = new Management();
 
 // Get workload
 $load = $management->buildWorkArray();
+$team = $management->getCapacityTeam('cap_product');
 
-// Show the request view
-include("views/capacity.php");
+if(isset($_GET['team'])) {
+    $team = $management->getCapacityTeam($_GET['team']);  
+    displayCapacityMembers($team); 
+} 
+elseif(isset($_POST['day'])) {
+    $management->updateCapacity($_POST);
+    include("core/messages.php");
+}
+else { 
+    // Show the request view
+    include("views/capacity.php");
+}

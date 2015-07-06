@@ -640,6 +640,167 @@ class Management
         }
     }
     
+    // Add Capacity Member
+    private function createCapacityMember($member)
+    {
+        if($member['name'] == 'undefined') {
+            return false;
+        }
+            
+        $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+        // Check DB
+        if (!$this->db_connection->set_charset("utf8")) {
+            $this->errors[] = $this->db_connection->error;
+        }
+
+        // If no errors push away!
+        if (!$this->db_connection->connect_errno) {
+
+            // Create variables and clean them of junk
+            $name = $this->db_connection->real_escape_string(strip_tags($member['name'], ENT_QUOTES));
+            // Create variables and clean them of junk
+            $hours = $this->db_connection->real_escape_string(strip_tags($member['hours'], ENT_QUOTES));
+            // Create variables and clean them of junk
+            $team = $this->db_connection->real_escape_string(strip_tags($member['team'], ENT_QUOTES));
+            
+            if(in_array("mon", $member['days'])) {
+                $cm_mon = 1;
+            } else { $cm_mon = 0; }
+            
+            if(in_array("tues", $member['days'])) {
+                $cm_tues = 1;
+            } else { $cm_tues = 0; }
+            
+            if(in_array("weds", $member['days'])) {
+                $cm_wed = 1;
+            } else { $cm_wed = 0; }
+            
+            if(in_array("thurs", $member['days'])) {
+                $cm_thurs = 1;
+            } else { $cm_thurs = 0; }
+            
+            if(in_array("fri", $member['days'])) {
+                $cm_fri = 1;
+            } else { $cm_fri = 0; }
+            
+            /*var_dump($member['days']);
+            echo $cm_mon ." <br />";
+            echo $cm_tues ." <br />";
+            echo $cm_wed ." <br />";
+            echo $cm_thurs ." <br />";
+            echo $cm_fri ." <br />";*/
+
+            $insert = "INSERT INTO `capacity_members`(`cm_team`, `cm_name`, `cm_hours`, `cm_mon`, `cm_tues`, `cm_weds`, `cm_thurs`, `cm_fri`) VALUES ('$team','$name','$hours','$cm_mon','$cm_tues','$cm_wed','$cm_thurs','$cm_fri');";
+            
+            //echo $insert ."<br />";
+
+            // Update scoping request.
+            $insert_rq = $this->db_connection->query($insert);
+
+            // Check if it worked
+            if ($insert_rq) {
+                $this->messages[] = "<strong>Members updated!</strong> That means everything is good.";
+            } else {
+                $this->errors[] = "<strong>Ahhh!</strong> Sorry something broke.";
+            }    
+        } else {
+            $this->errors[] = "<strong>Epic Fail!</strong> Sorry, no database connection.";
+        }
+    }
+    
+    // Remove Capacity team
+    private function deleteCapacityTeam($team)
+    {
+        $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+        // Check DB
+        if (!$this->db_connection->set_charset("utf8")) {
+            $this->errors[] = $this->db_connection->error;
+        }
+
+        // If no errors push away!
+        if (!$this->db_connection->connect_errno) {
+
+            // Remove previous team entry
+            $del = "DELETE FROM `capacity_members` WHERE `cm_team` = '$team'";
+            $del_query = $this->db_connection->query($del);
+
+            if($del_query) {
+            } else {
+                $this->errors[] = "<strong>Ahahahakk!</strong> I can't delete that team.";
+            }    
+        } else {
+            $this->errors[] = "<strong>Epic Fail!</strong> Sorry, no database connection.";
+        }
+    }
+
+    // Update Capacity
+    public function updateCapacity($post) 
+    {
+        $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        
+        // Check DB
+        if (!$this->db_connection->set_charset("utf8")) {
+            $this->errors[] = $this->db_connection->error;
+        }
+
+        // If no errors push away!
+        if (!$this->db_connection->connect_errno) {
+           
+            $team = $post['name'];
+            $day = $post['day'];
+
+            $team = $this->db_connection->real_escape_string(strip_tags($team, ENT_QUOTES));
+
+            $sql = "UPDATE `capacity` SET `$team`='$day' WHERE `capacity_id` = 1";
+
+            // Update capacity.
+            $sql_result = $this->db_connection->query($sql);
+
+            // Check if it worked
+            if ($sql_result) {
+                $this->messages[] = "<strong>Boom!</strong>";
+                
+                $this->deleteCapacityTeam($team);
+                
+                // Be awesome. Create members
+                foreach($post['members'] as $member=>$detail) {
+                    $detail['name'] = $member;
+                    $detail['team'] = $team;
+
+                    $this->createCapacityMember($detail);
+                }
+            } else {
+                $this->errors[] = "<strong>Ahhh!</strong> Sorry something else broke";
+            }
+        } else {
+            $this->errors[] = "<strong>Epic Fail!</strong> Sorry, no database connection.";
+        }
+        
+    }
+    
+    // Get the capcity team members
+    public function getCapacityTeam($team) 
+    {
+        // Establish connection
+        $this->db_connection = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+        
+        // Check DB
+        if (!$this->db_connection->set_charset("utf8")) {
+            $this->errors[] = $this->db_connection->error;
+        }
+        
+        // If no errors grab all the tasks with the right status
+        if (!$this->db_connection->connect_errno) {
+            $sql = "SELECT * FROM `capacity_members` WHERE `cm_team` = '". $team ."';";
+            $cm_list = $this->db_connection->query($sql);
+            
+            return $cm_list;
+        }  
+    }
+    
+    
     // Gets all tasks from a project. It then calls the insertTaskIntoBb method. It will only call insertTask when a task has a due date and has at least one tag.
     public function getProjectTasks($projectId)
     {
@@ -705,7 +866,11 @@ class Management
                     foreach( $obj->tags as $fullTag ) {
                         $tag = explode(":", $fullTag->name);
                         $area = strtolower($tag[0]);
-                        $work = $tag[1];
+                        if(isset($tag[1])) {  
+                            $work = $tag[1];
+                        } else {
+                            $work = 0;
+                        }
                         
                         if(in_array($area, $depts)) {
                             $name = "asana_" . $area;

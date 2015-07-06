@@ -5,7 +5,7 @@ require_once('views/template/nav.php');
 ?>
     <div class="container">
         <div class="row">
-            <div class="col-md-6 col-md-offset-3">
+            <div class="col-md-8 col-md-offset-2">
                 <h3>View Capacity</h3>
                 <hr />
                 <input type="hidden" value="2015-05-01" id="sDate" />
@@ -74,8 +74,70 @@ require_once('views/template/nav.php');
             </div>
         </div>
         <div class="row">
-            <div class="col-md-10 col-md-offset-1">
+            <div class="col-md-12">
                 <div id="hc"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <hr />
+                <h3>Edit Capacity</h3>
+                <form name="team1CapacityForm" id="team1CapacityForm">
+                    <div class="team">
+                        <div class="row">
+                            
+                        </div>
+                        <div class="row">
+                            <br />
+                            <div class="col-xs-12">
+                                <table class="table table-hover center-td" id="memberTable-1">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="1">
+                                                    <select type="text" class="form-control" id="teamInpt" name="team_name"  required>
+                                                        <option value="" disabled selected>Edit a team</option>
+                                                        <option value="cap_product">Product team</option>
+                                                        <option value="cap_coms">Comms team</option>
+                                                        <option value="cap_digital">Digital dawgs</option>
+                                                        <option value="cap_design">Design studio</option>
+                                                        <option value="cap_video">Video wizkids</option>
+                                                        <option value="cap_external">External contractors</option>
+                                                    </select>
+                                                    <input type="hidden" name="team_count" value="1" id="team1_count">
+                                            </th>
+                                            <th colspan="5">Workdays</th>
+                                            <th><!--<button class="btn btn-primary pull-right" id="addTeamBtn"><span class='glyphicon glyphicon-plus'></span> team</button>-->
+                                                <button class="btn btn-primary btn-xs pull-right add-member-btn" ><span class='glyphicon glyphicon-plus'></span> Member</button>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th>Member</th>
+                                            <th>Mon</th>
+                                            <th>Tues</th>
+                                            <th>Weds</th>
+                                            <th>Thurs</th>
+                                            <th>Fri</th>
+                                            <th>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="members_append">
+                                        <tr>
+                                            <td colspan="7" class="text-center">Select team</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div class="row">
+                    <div class="col-xs-12 text-center">
+                        <button class="btn btn-default" id="finishCapacityBtn">Done</button>
+                    </div>
+                </div>
+                <div id="result">
+                </div>
             </div>
         </div>
     </div>
@@ -86,14 +148,14 @@ require_once('views/template/nav.php');
     <script type="text/javascript" src="js/highstock.js"></script>
     <script type="text/javascript" src="js/moment.js"></script>
     <script type="text/javascript" src="js/work.js"></script>
+    <script type="text/javascript" src="js/capacity.js"></script>
     <script type="text/javascript">
         var wl = new work();
         
         var cap = <?php echo json_encode($capacity); ?>;
         var load = <?php echo json_encode($load); ?>;
         wl.build(load, cap);
-        wl.buildHighStock('hc');
-        
+        //wl.buildHighStock('hc');
         
     </script>
 

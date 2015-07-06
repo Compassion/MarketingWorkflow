@@ -218,5 +218,17 @@ Redfining Bootstrap colours
 .navbar.navbar-default {
     margin-bottom: 0;
 }
-
-
+.table input[type='checkbox'] {
+    height:24px;
+    width: 34px;
+    margin-top: 5px;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+.center-td th {
+    text-align: center;
+}
+.center-td tr th:first-child {
+    text-align: left;
+}

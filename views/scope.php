@@ -16,6 +16,7 @@ if(isset($_GET['rq_id'])) {
 $task = $management->getTaskById($id); 
 $scope = $management->getScopeRecord($id);
 $log = $management->getAuditLog($id);
+$subtasks = $management->getDeliverables($id);
 
 $ph = array();
 if($scope == null) {
@@ -47,21 +48,22 @@ if($scope == null) {
                 <hr />
                 <!-- // display errors -->
                 <br />
-                <h4><?php echo $task['request_name']?> 
-                    <span class="btn btn-default btn-xs disabled pull-right btn-primary"><?=$task['date_due']?></span>
-                    <br /><small><?=$task['request_type']?> - <?=$task['request_category']?>
-                    <br />Submitted by  <?=$task['request_maker']?> on <?=$task['date_created']?>, Due: <?=$task['date_due']?>
-                    <?php if(!$new_rq) { ?>
-                        <br /> Originally scoped by <?=$scope['scoper']; ?>, on <?=$scope['date_scoped']; ?>
-                    <?php } ?>
-                    </small></h4>
-                
-                <br />
-                <div class="description">
-                    <p><b>Description</b><br />
-                        <?php echo $task['description']?></p>
+                <div class="well">
+                    <h4><?php echo $task['request_name']?> 
+                        <span class="label label-primary pull-right"><?="Due " .transformDate($task['date_due'])?></span>
+                        <br /><small><?=$task['request_type']?> - <?=$task['request_category']?>
+                        <br />Submitted by  <?=$task['request_maker']?> on <?=$task['date_created']?>, Due: <?=$task['date_due']?>
+                        <?php if(!$new_rq) { ?>
+                            <br /> Originally scoped by <?=$scope['scoper']; ?>, on <?=$scope['date_scoped']; ?>
+                        <?php } ?>
+                        </small></h4>
+
+                    <br />
+                    <div class="description">
+                        <p><b>Description</b><br />
+                            <?php echo $task['description']?></p>
+                    </div>
                 </div>
-                
                 <span id="infoMessage"></span>
                 <!-- display errors -->
                 <p class="text-center">
@@ -140,6 +142,7 @@ if($scope == null) {
                     <br />
                     <h4>Desired deliverables</h4>
                     <div class="" id="deliverableFormContainer">
+                        <?php displayEditableSutbtasks($subtasks); ?>
                         <form method="post" post="scope.php" name="deliverableForm-0" id="deliverableForm-0" class="row deliverableForm">
                             <div class="form-group col-sm-8">
                                 <label for="st_name-0">Deliverable</label>

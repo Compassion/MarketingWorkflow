@@ -3,6 +3,13 @@ $(".addDel").click(function(event) {
     createDeliverableForm();
 });
 
+$(".remove-btn").click(function(event) {
+    event.preventDefault();
+    var id = $(this).attr('data-form-id');
+    
+    $("#"+id).remove();
+});
+
 $("#submitScope").click(function() {
     var that = $(this);
     

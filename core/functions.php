@@ -661,6 +661,69 @@
         echo '</tbody></table>';
     }
 
+    function displayCapacityMembers($cm_team) {
+        if($cm_team->num_rows == null) {
+            echo '<tr>
+                    <td><input type="text" class="form-control" id="nameInpt" name="member-0_name" placeholder="Member 0"></td>
+                    <td><input type="checkbox" name="member-0_days" value="mon" checked></td>
+                    <td><input type="checkbox" name="member-0_days" value="tues" checked></td>
+                    <td><input type="checkbox" name="member-0_days" value="weds" checked></td>
+                    <td><input type="checkbox" name="member-0_days" value="thurs" checked></td>
+                    <td><input type="checkbox" name="member-0_days" value="fri" checked></td>
+                    <td><input type="hidden" name="member-0_days" value="sat" checked></td>
+                </tr>';
+            
+            return false;
+        }
+        
+        $n = 0;
+                     
+        while($row = $cm_team->fetch_assoc()) {
+            $person = $row['cm_name'];
+            $hours = $row['cm_hours'];
+            
+            if($row['cm_mon'] == 1) {
+               $cm_mon = 'checked'; 
+            } else {
+                $cm_mon = '';
+            }
+            if($row['cm_tues'] == 1) {
+               $cm_tues = 'checked'; 
+            } else {
+                $cm_tues = '';
+            }
+            if($row['cm_weds'] == 1) {
+               $cm_weds = 'checked'; 
+            } else {
+                $cm_weds = '';
+            }
+            if($row['cm_thurs'] == 1) {
+               $cm_thurs = 'checked'; 
+            } else {
+                $cm_thurs = '';
+            }
+            if($row['cm_fri'] == 1) {
+               $cm_fri = 'checked'; 
+            } else {
+                $cm_fri = '';
+            }
+            
+            $td1 = '<td><input type="text" class="form-control" id="nameInpt" name="member-'.$n.'_name" placeholder="'.$person.'" value="'.$person.'"></td>';
+            $td2 = '<td><input type="checkbox" name="member-'.$n.'_days" value="mon"  '.$cm_mon.'></td>';
+            $td3 = '<td><input type="checkbox" name="member-'.$n.'_days" value="tues" '.$cm_tues.'></td>';
+            $td4 = '<td><input type="checkbox" name="member-'.$n.'_days" value="weds"  '.$cm_weds.'></td>';
+            $td5 = '<td><input type="checkbox" name="member-'.$n.'_days" value="thurs"  '.$cm_thurs.'></td>';
+            $td6 = '<td><input type="checkbox" name="member-'.$n.'_days" value="fri"  '.$cm_fri.'></td>';
+            $td7 = '<td><button class="btn btn-xs btn-danger pull-right btn-remove-member" id="remove-member'.$n.'">Remove</button><input type="hidden" name="member-'.$n.'_days" value="sat" checked></td>';
+            
+            echo '<tr>';
+            echo $td1. $td2. $td3. $td4. $td5. $td6. $td7;
+            echo '</tr>';
+            
+            $n++;
+        }
+    }
+
     function displaySutbtasks($subtasks) {
         if($subtasks->num_rows == null) {
             return false;
@@ -686,5 +749,23 @@
             echo "</tr>";
         }
         echo '</tbody></table>';
+    }
+
+    function displayEditableSutbtasks($subtasks) {
+        if($subtasks->num_rows == null) {
+            return false;
+        }
+        
+        while($row = $subtasks->fetch_assoc()) {
+            $id = '0' .$row["st_id"];
+            $name = $row["st_name"];
+            $comment =$row['st_comment'];
+            $due = $row['st_date_required'];
+        
+            $form = "<form method='post' post='scope.php' name='deliverableForm-".$id."' id='deliverableForm-".$id."' class='row deliverableForm'><div class='form-group col-sm-8'><label for='st_name-".$id."'>Deliverable</label><input class='form-control' placeholder='Name' name='st_name-".$id."' id='st_name-".$id."' value='".$name."' /></div><div class='form-group col-sm-4'><label for='st_due-".$id."'>Due</label><input class='form-control' type='date' name='st_due-".$id."' id='st_due-".$id."' value='".$due."' /></div><div class='form-group col-sm-8'><textarea class='form-control' rows='1' placeholder='Comment' name='st_comment-".$id."' id='st_comment-".$id."' value='".$comment."' >".$comment."</textarea></div><div class='col-sm-4'><button class='btn btn-danger btn-xs pull-right remove-btn' data-form-id='deliverableForm-".$id."' ><span class='glyphicon glyphicon-remove'></span> Remove</button></div></form>";
+            
+            echo $form;
+            
+        }
     }
 ?>

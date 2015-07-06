@@ -9,11 +9,36 @@ require_once("classes/Management.php");
 
 // Gotta get the request class
 $management = new Management();
-
+/*
 echo "POST";
 var_dump($_POST);
 echo "<hr />";
 
+echo "Team name is ".$_POST['name'] . "<br />";
+echo "Team capacity per day is ".$_POST['day'] . "<br />";
+echo "Team members are ";
+
+foreach($_POST['members'] as $member=>$info) {
+    $info['name'] = $member;
+    $info['team'] = $_POST['name'];
+    echo $member ." "; 
+    var_dump($info);
+}
+echo "<br /><br />";
+
+foreach($_POST['members'] as $member=>$info) {
+    echo $member ." works " .$info['hours'] ." hours per week. <br />"; 
+    echo "They work ";
+    
+    foreach($info['days'] as $day) {
+        if($day != 'sat') {
+            echo $day .", ";
+        }
+    }
+    echo " each week. <br />";
+} */
+
+$management->updateCapacity($_POST);
 /*
 $audit = array();
 $audit['rq_id'] = $_POST['request_id'];
